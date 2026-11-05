@@ -4,13 +4,13 @@
 import {
   h, ICON, WEATHER_ICON, WEATHER_TEXT, fmtNum, isDead, domainOf, nameOf,
   shortName, clamp,
-} from "./core.js?v=2.0.1";
+} from "./core.js?v=2.1.1";
 import {
   roomTile, deviceTile, deviceBig, mediaTile, securityTile, securityAlerts,
   climateTile, powerTile, sceneChip, listGroup, listRow, sensorPills,
   stateText, supportsBig, ic, isCardOn, anyTile, cardWrap,
-} from "./controls.js?v=2.0.1";
-import { weatherIcon, weatherText } from "./weather.js?v=2.0.1";
+} from "./controls.js?v=2.1.1";
+import { weatherIcon, weatherText } from "./weather.js?v=2.1.1";
 
 const NB_DAYS = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
 const NB_MON = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];
@@ -493,7 +493,12 @@ export function roomGrid(ctx, room) {
 
 export function roomBody(ctx, model, room) {
   if (!room) return `<div class="empty">Fant ikke rommet.</div>`;
-  const scenes = room.scenes.filter((e) => !ctx.store.isHidden("room:" + room.id, e));
+  /* Som alt annet: med autofyll av vises bare scenene brukeren har lagt inn. */
+  const roomScope = "room:" + room.id;
+  const sceneOrder = ctx.store.data.order["scenes:" + room.id];
+  const scenePool = ctx.cfg.autoFill ? room.scenes
+    : (sceneOrder || []).filter((e) => room.scenes.includes(e));
+  const scenes = scenePool.filter((e) => !ctx.store.isHidden(roomScope, e));
   const chips = scenes.length ? `
     <div class="scenes"><div class="lbl">Scener</div>
       <div class="scenestrip">${scenes.slice(0, ctx.edit ? 24 : 8).map((e) => sceneChip(ctx, e, room.name, "room:" + room.id)).join("")}</div></div>` : "";

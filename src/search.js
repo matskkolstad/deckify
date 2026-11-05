@@ -5,9 +5,9 @@
 import {
   h, ICON, isOn, isDead, domainOf, nameOf, fullNameOf, shortName, entityIcon,
   DOMAIN_LABEL, fmtNum,
-} from "./core.js?v=2.0.1";
-import { ic, stateText } from "./controls.js?v=2.0.1";
-import { sheet } from "./overlays.js?v=2.0.1";
+} from "./core.js?v=2.1.1";
+import { ic, stateText } from "./controls.js?v=2.1.1";
+import { sheet } from "./overlays.js?v=2.1.1";
 
 /* Treff tidlig i navnet veier tyngre enn treff langt ute i en id. */
 function score(q, name, area, eid, domain) {

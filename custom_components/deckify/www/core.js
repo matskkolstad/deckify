@@ -3,7 +3,7 @@
  * Bygget for Mats' HA i Oslo. Ingen HACS-avhengighet.
  */
 
-export const DK_VER = "2.0.1";
+export const DK_VER = "2.1.1";
 
 /* Basis-URL for modulene. Integrasjonen serverer dem fra /deckify_files/,
    men kortet skal også fungere hvis noen legger filene et annet sted — så
@@ -304,7 +304,35 @@ export const BACKGROUNDS = [
     off: ["#3a2a22", "#241a16", "#100b09"],
     on:  ["#6d4328", "#3b2419", "#16100b"],
   },
+  /* --- lyse temaer ---------------------------------------------------
+     `light: true` snur tekst- og flatefargene (.hd.light i styles.js).
+     Uten den klassen blir hvit tekst på lys bakgrunn uleselig. */
+  {
+    id: "dagslys", name: "Dagslys", light: true,
+    off: ["#ffffff", "#f3f1ec", "#e6e2da"],
+    on:  ["#fffdf7", "#f8f2e4", "#ece3cf"],
+  },
+  {
+    id: "lin", name: "Lin", light: true,
+    off: ["#faf6ef", "#efe8dc", "#ded4c4"],
+    on:  ["#fdf8ec", "#f5ebd8", "#e7d9bf"],
+  },
+  {
+    id: "tare", name: "Tåke", light: true,
+    off: ["#f4f6f8", "#e8ecf1", "#d7dde5"],
+    on:  ["#f8fafc", "#edf1f6", "#dde4ec"],
+  },
+  {
+    id: "fersken", name: "Fersken", light: true,
+    off: ["#fdf2ec", "#f6e5dc", "#e9d2c5"],
+    on:  ["#fff4ea", "#fbe6d4", "#f0d5bc"],
+  },
 ];
+
+/** Er dette et lyst tema? Styrer `.hd.light`. */
+export function isLightBg(bgId) {
+  return !!(BACKGROUNDS.find((x) => x.id === bgId) || {}).light;
+}
 
 export function bgCss(bgId, warmth) {
   const b = BACKGROUNDS.find((x) => x.id === bgId) || BACKGROUNDS[0];
@@ -322,6 +350,17 @@ export function bgCss(bgId, warmth) {
     `radial-gradient(128% 96% at 26% 8%, ${c0} 0%, ${c1} 44%, ${c2} 100%),` +
     `radial-gradient(70% 60% at 88% 96%, ${c0}55 0%, ${c2}00 70%)`
   );
+}
+
+/** Én flat farge som matcher bunnen av gradienten.
+ *  Brukes på vertselementet, der en gradient ikke kan strekkes riktig. */
+export function bgBase(bgId, warmth) {
+  const b = BACKGROUNDS.find((x) => x.id === bgId) || BACKGROUNDS[0];
+  const t = clamp(warmth || 0, 0, 1);
+  const p = (x) => [parseInt(x.slice(1, 3), 16), parseInt(x.slice(3, 5), 16), parseInt(x.slice(5, 7), 16)];
+  const A = p(b.off[2]), C = p(b.on[2]);
+  return "#" + A.map((v, i) => Math.round(v + (C[i] - v) * t))
+    .map((v) => v.toString(16).padStart(2, "0")).join("");
 }
 
 /* ------------------------------------------------------------- settings */

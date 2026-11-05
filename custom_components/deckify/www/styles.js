@@ -1,6 +1,6 @@
 /* Deckify — styles.js  (alt visuelt uttrykk) */
 
-import { BASE } from "./core.js?v=2.0.1";
+import { BASE } from "./core.js?v=2.1.1";
 
 export const CSS = `
 @font-face{font-family:'HDFigtree';font-style:normal;font-weight:300 800;font-display:swap;
@@ -1006,6 +1006,79 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
   background:var(--off);border:1px solid var(--off-br);font-size:13px;color:var(--tx-sub)}
 .sensorpill ha-icon{--mdc-icon-size:16px;opacity:.75}
 .sensorpill b{color:var(--tx);font-weight:600;font-variant-numeric:tabular-nums}
+
+/* ------------------------------------------------- lyse temaer
+   Hele paletten er stemt for mørk bakgrunn med hvit tekst. Et lyst tema må
+   derfor snu BÅDE tekstfargene og alle de halvgjennomsiktige hvite flatene
+   (slidere, brikker, striper) — en hvit 7 %-flate på hvit bakgrunn er
+   usynlig, og hvit tekst er uleselig. Alt som er stemt for mørkt har en
+   .light-motpart her. */
+.hd.light{
+  --off:rgba(22,18,15,.055);
+  --off-hi:rgba(22,18,15,.10);
+  --off-br:rgba(22,18,15,.10);
+  --tx:#1c1815;
+  --tx-sub:rgba(28,24,21,.58);
+  --tx-dim:rgba(28,24,21,.38);
+  --label:rgba(28,24,21,.46);
+  --dock:rgba(255,255,255,.78);
+}
+.hd.light #bg::after{
+  background:radial-gradient(90% 70% at 50% 110%, rgba(40,30,20,.10), transparent 70%)}
+.hd.light .card{box-shadow:0 1px 2px rgba(20,16,12,.04)}
+.hd.light .card.on{box-shadow:0 12px 28px -14px rgba(40,30,20,.45);
+  border:1px solid rgba(20,16,12,.10)}
+.hd.light .card.dead{opacity:.5}
+
+/* flater som var hvite-på-mørkt */
+.hd.light .minibar,
+.hd.light .bar,
+.hd.light .vbar,
+.hd.light .prog,
+.hd.light .tband,
+.hd.light .sw-toggle{background:rgba(22,18,15,.12)}
+.hd.light .dots i{background:rgba(22,18,15,.20)}
+.hd.light .pw{background:rgba(22,18,15,.08)}
+.hd.light .card.on .pw{background:rgba(0,0,0,.08)}
+.hd.light .card.on .minibar{background:rgba(34,29,25,.14)}
+.hd.light .card.on .dots i{background:rgba(34,29,25,.20)}
+.hd.light .card.on .bar{background:rgba(34,29,25,.12)}
+.hd.light .navitem:hover{background:rgba(22,18,15,.06)}
+.hd.light .navitem.sel{background:#241d17;color:#fff}
+.hd.light .sensorpill,
+.hd.light .chip{background:rgba(22,18,15,.05);border-color:rgba(22,18,15,.10)}
+.hd.light .chip:hover{background:rgba(22,18,15,.09)}
+.hd.light .chip ha-icon{opacity:.6}
+.hd.light .btn{background:rgba(22,18,15,.08);color:var(--tx)}
+.hd.light .pick{background:rgba(22,18,15,.05);border-color:rgba(22,18,15,.10)}
+.hd.light .optrow{border-top-color:rgba(22,18,15,.10)}
+.hd.light .sizepick,
+.hd.light .pickrow2{background:rgba(22,18,15,.05);border-color:rgba(22,18,15,.10)}
+.hd.light .sizepick .box{background:rgba(22,18,15,.26)}
+.hd.light .swrow .sw{border-color:rgba(22,18,15,.20)}
+.hd.light #pickq,
+.hd.light .txtin,
+.hd.light .septxt{background:rgba(22,18,15,.05);border-color:rgba(22,18,15,.14);color:var(--tx)}
+
+/* overlegg og menylinje */
+.hd.light .sheet{background:rgba(252,250,246,.97);border-color:rgba(22,18,15,.10);
+  box-shadow:0 40px 90px -20px rgba(40,30,20,.35)}
+.hd.light .scrim{background:rgba(40,32,24,.32)}
+.hd.light #dock{border-color:rgba(22,18,15,.10);
+  box-shadow:0 14px 40px -16px rgba(40,30,20,.35)}
+.hd.light #dock{background:rgba(255,255,255,.93)}
+.hd.light .dockitem{color:rgba(28,24,21,.62)}
+.hd.light .dockitem.sel{background:#241d17;color:#fff}
+.hd.light #editfab{background:#241d17;color:#fff}
+.hd.light #edittoolbar{background:rgba(252,250,246,.95);border-color:rgba(22,18,15,.10)}
+.hd.light .ebtn{background:rgba(22,18,15,.07)}
+
+/* redigeringsknapper: hvit sirkel forsvinner mot lys bakgrunn */
+.hd.light .cog{background:#241d17;color:#fff}
+.hd.light .bigtog{background:#241d17;color:#fff}
+.hd.light .card .grip{background:rgba(22,18,15,.10);color:var(--tx-sub)}
+.hd.light .empty{color:var(--tx-sub)}
+
 
 /* ------------------------------------------------- kortinnstillinger */
 .cardcfgsheet{width:min(560px,94vw);max-height:88vh}

@@ -4,8 +4,8 @@
 import {
   h, ICON, WEATHER_ICON, WEATHER_TEXT, fmtNum, mmss, clamp, domainOf,
   nameOf, fullNameOf, shortName, isDead, entityIcon, DOMAIN_LABEL,
-} from "./core.js?v=2.0.1";
-import { ic, mediaPos, stateText, isCardOn } from "./controls.js?v=2.0.1";
+} from "./core.js?v=2.1.1";
+import { ic, mediaPos, stateText, isCardOn } from "./controls.js?v=2.1.1";
 
 const NB_DAY_SHORT = ["søn", "man", "tir", "ons", "tor", "fre", "lør"];
 const NB_DAY_HDR = ["MAN", "TIR", "ONS", "TOR", "FRE", "LØR", "SØN"];

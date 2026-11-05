@@ -7,32 +7,32 @@
 import {
   instanceOf, resolveConfig, BASE,
   DK_VER, h as hEsc, h, ICON, clamp, domainOf, isOn, isDead, nameOf, buildModel, Store,
-  bgCss, CARD_COLORS, ACCENT_COLORS, callSvc, toggleEntity, fireEvent, deepQuery,
+  bgCss, bgBase, isLightBg, CARD_COLORS, ACCENT_COLORS, callSvc, toggleEntity, fireEvent, deepQuery,
   LIGHT_SWATCHES, DEFAULTS,
-} from "./core.js?v=2.0.1";
-import { cardConfigSheet, cardEntity } from "./cards.js?v=2.0.1";
-import { CSS } from "./styles.js?v=2.0.1";
+} from "./core.js?v=2.1.1";
+import { cardConfigSheet, cardEntity } from "./cards.js?v=2.1.1";
+import { CSS } from "./styles.js?v=2.1.1";
 import {
   viewHomeGrid, viewHomeList, viewHomeSidebar, viewHomeFocus, viewRooms,
   viewMedia, viewSecurity, viewCustom, dock, saver, visibleScenes, visibleHomeTiles,
   visibleRoomTiles, header,
-} from "./views.js?v=2.0.1";
+} from "./views.js?v=2.1.1";
 import {
   weatherSheet, calendarSheet, todoSheet, playerSheet, pickerSheet, confirmSheet,
-} from "./overlays.js?v=2.0.1";
-import { settingsSheet } from "./settings.js?v=2.0.1";
-import { morph } from "./morph.js?v=2.0.1";
+} from "./overlays.js?v=2.1.1";
+import { settingsSheet } from "./settings.js?v=2.1.1";
+import { morph } from "./morph.js?v=2.1.1";
 import {
   viewMediaPage, groupSheet, browseSheet, groupable, allPlayers, currentGroups,
-} from "./media.js?v=2.0.1";
-import { detailSheet } from "./detail.js?v=2.0.1";
-import { viewEnergy, viewHouse } from "./pages.js?v=2.0.1";
-import { viewStart } from "./start.js?v=2.0.1";
-import { appleTVSheet, appleTVs, isAppleTV } from "./appletv.js?v=2.0.1";
-import { weatherData } from "./weather.js?v=2.0.1";
-import { searchSheet } from "./search.js?v=2.0.1";
-import { viewAttention, attentionCount } from "./attention.js?v=2.0.1";
-import { ic } from "./controls.js?v=2.0.1";
+} from "./media.js?v=2.1.1";
+import { detailSheet } from "./detail.js?v=2.1.1";
+import { viewEnergy, viewHouse } from "./pages.js?v=2.1.1";
+import { viewStart } from "./start.js?v=2.1.1";
+import { appleTVSheet, appleTVs, isAppleTV } from "./appletv.js?v=2.1.1";
+import { weatherData } from "./weather.js?v=2.1.1";
+import { searchSheet } from "./search.js?v=2.1.1";
+import { viewAttention, attentionCount } from "./attention.js?v=2.1.1";
+import { ic } from "./controls.js?v=2.1.1";
 
 console.info(`%c DECKIFY %c ${DK_VER} `,
   "background:#f5b731;color:#2a2008;font-weight:700;border-radius:3px 0 0 3px",
@@ -288,8 +288,24 @@ class DeckifyCard extends HTMLElement {
 
     /* bakgrunn */
     const warm = this._store.get("bgAuto") ? model.warmth : 0.35;
-    const bg = bgCss(this._store.get("background"), warm);
-    if (bg !== this._cache.bg) { this._bgEl.style.background = bg; this._cache.bg = bg; }
+    const bgId = this._store.get("background");
+    const bg = bgCss(bgId, warm);
+    if (bg !== this._cache.bg) {
+      this._bgEl.style.background = bg;
+      /* Mal også VERTSELEMENTET, slik at et område som ligger utenfor .hd
+         (panelet er høyere enn innholdet, eller man scroller forbi) aldri
+         viser Home Assistants hvite bakgrunn. */
+      const base = bgBase(bgId, warm);
+      this.style.background = base;
+      try { this.parentNode?.host?.style?.setProperty("--deckify-bg", base); } catch (e) {}
+      this._cache.bg = bg;
+    }
+    /* Lyse temaer snur tekst- og flatefargene. */
+    const light = isLightBg(bgId);
+    if (light !== this._cache.light) {
+      this._root.classList.toggle("light", light);
+      this._cache.light = light;
+    }
 
     /* hovedinnhold */
     const html = this._viewHtml(ctx, model);
@@ -728,6 +744,12 @@ class DeckifyCard extends HTMLElement {
     if (cc && cc.tap && cc.tap !== "default") return this._runCardAct(cc, "tap", eid);
     if (!eid) return;
     if (domainOf(eid) === "media_player") {
+      /* En Apple TV er en fjernkontroll, ikke en høyttaler — full spiller
+         gir ingen mening der. Fjernkontrollen lå tidligere BARE som en brikke
+         i Startskjerm-layouten, så den var i praksis utilgjengelig. */
+      if (isAppleTV(this, eid)) {
+        this._st.atvSel = eid; this._st.overlay = "appletv"; this._render(); return;
+      }
       this._st.playerEid = eid; this._st.overlay = "player"; this._render(); return;
     }
     if (this._needsConfirm(eid)) return this._askConfirm(eid);
@@ -1210,6 +1232,20 @@ class DeckifyCard extends HTMLElement {
         const val = next.length === all.length ? [] : next;
         await this._store.patchServer({ areas: val });
         this._applyServerConfig();
+        this._render(); break;
+      }
+      case "pagetoggle": {
+        const all = ["start", "home", "rooms", "media", "house", "energy",
+                     "security", "attention"];
+        const cur = this._cfg.pages || [];
+        const on = d.v === "1";
+        /* behold den faste rekkefølgen, uansett hvilken vei man skrur */
+        const next = all.filter((p) => on ? (cur.includes(p) || p === d.k)
+                                          : (cur.includes(p) && p !== d.k));
+        await this._store.patchServer({ pages: next.length ? next : ["home"] });
+        this._applyServerConfig();
+        if (!next.includes(this._st.view)) this._st.view = "home";
+        this._cache.body = null; this._cache.dock = null;
         this._render(); break;
       }
       case "cfgnum": {
@@ -2001,9 +2037,12 @@ class DeckifyPanel extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
+    /* `height:100%` ga en boks på nøyaktig én skjermhøyde mens innholdet
+       scrollet videre — under boksen så man Home Assistants egen (hvite)
+       bakgrunn. Bruk min-height, og la kortet male bakgrunnen på seg selv. */
     this.shadowRoot.innerHTML =
-      `<style>:host{display:block;height:100%;min-height:100vh}
-       deckify-card{display:block;height:100%}</style>`;
+      `<style>:host{display:block;min-height:100%;background:var(--deckify-bg,#140b14)}
+       deckify-card{display:block;min-height:100vh}</style>`;
   }
 
   set hass(hass) {

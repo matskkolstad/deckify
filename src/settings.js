@@ -4,8 +4,8 @@
  */
 import {
   h, ICON, CARD_COLORS, ACCENT_COLORS, BACKGROUNDS, bgCss, nameOf, shortName,
-} from "./core.js?v=2.0.1";
-import { ic } from "./controls.js?v=2.0.1";
+} from "./core.js?v=2.1.1";
+import { ic } from "./controls.js?v=2.1.1";
 
 const LAYOUTS = [
   { id: "start", name: "Startskjerm", desc: "Stor klokke, vær og ett informativt kvadrat per rom. Best som førsteskjerm.", prev: "start" },
@@ -219,21 +219,32 @@ function paneNav(ctx, model) {
       <div class="btn danger" data-act="delpage" data-p="${h(p.id)}">${ic(ICON.close)}</div>
     </div>`).join("") : `<div class="sub" style="padding:10px 0">Ingen egne sider ennå.</div>`;
 
+  /* Sidene ligger i serveroppsettet (samme liste som integrasjonens
+     «Sider»-side), ikke i en lokal skjul-liste. Da er listen positiv:
+     ingenting vises før du har skrudd det på. */
   const DOCK_ALL = [
-    ["home", "Hjem"], ["rooms", "Rom"], ["media", "Media"],
-    ["house", "Huset"], ["energy", "Energi"], ["security", "Sikkerhet"],
+    ["home", "Hjem", "Rom, scener og kortene du legger inn selv."],
+    ["rooms", "Rom", "Ett rom av gangen med alle enhetene i rommet."],
+    ["media", "Media", "Høyttalere, grupper, favoritter og fjernkontroller."],
+    ["house", "Huset", "Temperatur, maskiner, planter og batterier."],
+    ["energy", "Energi", "Strømpris og forbruk."],
+    ["security", "Sikkerhet", "Røyk, lekkasje, dører og bevegelse."],
+    ["attention", "Trenger tilsyn", "Alt som ber om en handling."],
   ];
-  const hidden = ctx.store.get("dockHidden") || [];
-  const dockRows = DOCK_ALL.map(([k, label]) => `
-    <div class="optrow">
-      <div class="ot"><b>${h(label)}</b></div>
-      <div class="sw-toggle ${hidden.includes(k) ? "" : "on"}"
-           data-act="docktoggle" data-k="${h(k)}"><i></i></div>
-    </div>`).join("");
+  const activePages = ctx.cfg.pages || [];
+  const dockRows = DOCK_ALL.map(([k, label, desc]) => {
+    const on = activePages.includes(k);
+    return `<div class="optrow" data-act="pagetoggle" data-k="${h(k)}" data-v="${on ? "" : "1"}">
+      <div class="ot"><b>${h(label)}</b><span>${h(desc)}</span></div>
+      <div class="sw-toggle ${on ? "on" : ""}"><i></i></div>
+    </div>`;
+  }).join("");
 
   return `
   <div class="setsec">
-    <h4>Sider i menylinja</h4><p>Slå av de du ikke bruker.</p>
+    <h4>Sider i menylinja</h4><p>Skru på de sidene du vil ha. De analytiske
+      sidene (Huset, Energi, Sikkerhet, Trenger tilsyn) fyller seg selv med
+      det de finner — derfor er de av til å begynne med.</p>
     ${dockRows}
   </div>
   <div class="setsec">

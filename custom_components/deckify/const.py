@@ -5,7 +5,7 @@ from __future__ import annotations
 DOMAIN = "deckify"
 
 # Må følge manifest.json — brukes til cache-busting av frontend-modulene.
-VERSION = "2.0.1"
+VERSION = "2.1.1"
 
 # URL-en de statiske frontend-filene serveres på.
 STATIC_URL = f"/{DOMAIN}_files"
@@ -84,7 +84,11 @@ def default_config(title: str = DEFAULT_TITLE) -> dict:
         "per_device": False,
         # [] = alle områder
         "areas": [],
-        "pages": ["start", "home", "rooms", "media", "house", "energy", "security", "attention"],
+        # Bare Hjem til å begynne med. Resten skrus på under
+        # Innstillinger -> Sider, eller i dashbordets egen navigasjonsside.
+        # Et tomt dashbord skal ikke ha sju faner fulle av ting du ikke har
+        # bedt om.
+        "pages": ["home"],
         # modellfiltre
         "exclude": [],
         "exclude_platforms": [],

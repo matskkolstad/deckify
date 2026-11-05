@@ -7,10 +7,11 @@
  * til — uten at kortet må endres.
  */
 import {
-  h, ICON, clamp, domainOf, nameOf, shortName, isDead, fmtNum, mmss,
-} from "./core.js?v=2.0.1";
-import { ic, mediaPos, stateText } from "./controls.js?v=2.0.1";
-import { sheet } from "./overlays.js?v=2.0.1";
+  h, ICON, clamp, domainOf, nameOf, shortName, isDead, fmtNum, mmss, areaIdOf,
+} from "./core.js?v=2.1.1";
+import { ic, mediaPos, stateText } from "./controls.js?v=2.1.1";
+import { sheet } from "./overlays.js?v=2.1.1";
+import { appleTVs } from "./appletv.js?v=2.1.1";
 
 /* ------------------------------------------------------- grupper/spillere */
 
@@ -20,12 +21,31 @@ function atvAct(ctx, eid) {
   return ctx.hass.entities?.[eid]?.platform === "apple_tv" ? "appletv" : "player";
 }
 
+export const MEDIA_SCOPE = "media";
+
+/**
+ * Spillerne mediasiden skal vise.
+ *
+ * Med autofyll av er den LAGREDE lista fasiten — ellers fylles siden av
+ * atten mediaspillere på et dashbord brukeren nettopp har startet tomt.
+ * Alle oppdagede spillere er fortsatt tilgjengelige i enhetsvelgeren.
+ */
 export function allPlayers(ctx, model) {
-  const out = [];
+  const found = [];
   for (const r of model.rooms)
     for (const e of r.controls)
-      if (domainOf(e) === "media_player") out.push({ eid: e, room: r.name });
-  return out;
+      if (domainOf(e) === "media_player") found.push({ eid: e, room: r.name });
+
+  const saved = ctx.store.data.order[MEDIA_SCOPE];
+  if (!ctx.cfg.autoFill) {
+    const list = (saved || []).filter((e) => ctx.hass.states[e]);
+    return list.map((e) => found.find((p) => p.eid === e) ||
+      { eid: e, room: ctx.hass.areas?.[areaIdOf(ctx.hass, e)]?.name || null });
+  }
+  if (!saved) return found;
+  const keep = saved.filter((e) => ctx.hass.states[e]);
+  return [...keep.map((e) => found.find((p) => p.eid === e) || { eid: e, room: null }),
+          ...found.filter((p) => !keep.includes(p.eid))];
 }
 
 /** Høyttalere som kan grupperes (støtter join/unjoin). */
@@ -59,6 +79,19 @@ export function groupLabel(ctx, members) {
 }
 
 /* ----------------------------------------------------------- mediaside */
+
+/** Fjernkontrollrad for Apple TV. Uten denne finnes fjernkontrollen bare i
+ *  Startskjerm-layouten, og er i praksis utilgjengelig på de andre. */
+function atvRow(ctx) {
+  const tvs = appleTVs(ctx);
+  if (!tvs.length) return "";
+  return `
+    <div class="lbl" style="margin-top:24px">Fjernkontroller</div>
+    <div class="scenestrip" style="margin-top:9px">
+      ${tvs.map((t) => `<div class="chip" data-act="appletv" data-e="${h(t.media)}">
+        ${ic("mdi:apple")}<span>${h(t.name)}</span></div>`).join("")}
+    </div>`;
+}
 
 export function viewMediaPage(ctx, model, header) {
   const { hass } = ctx;
@@ -101,12 +134,20 @@ export function viewMediaPage(ctx, model, header) {
           ${ic("mdi:playlist-music-outline")}<span>Start musikk</span></div>
       </div>
     </div>
-    ${quick}
+    ${atvRow(ctx)}
+    ${players.length ? quick : ""}
     ${groupRow}
+    ${!players.length ? `<div class="empty">${ic("mdi:speaker-off")}Ingen høyttalere lagt inn ennå —
+      trykk Rediger og «Legg til enheter».</div>` : ""}
     ${active.length ? `<div class="grid" style="grid-auto-rows:168px">${bigCards}</div>` : ""}
+    ${ctx.edit ? `<div class="grid" style="margin-top:18px">
+      <div class="card addcard" data-act="adddevices" data-scope="${h(MEDIA_SCOPE)}">
+        <div class="inner"><div class="ic">${ic(ICON.plus)}</div><span>Legg til høyttalere</span></div></div>
+      </div>` : ""}
     ${idle.length ? `<div class="lbl" style="margin-top:24px">Høyttalere</div>
       <div class="grid">${idle.map((p) => speakerTile(ctx, p.eid, p.room)).join("")}</div>` : ""}
-    ${!players.length ? `<div class="empty">${ic(ICON.media)}Ingen mediaspillere funnet.</div>` : ""}`;
+    ${!players.length && ctx.cfg.autoFill
+      ? `<div class="empty">${ic(ICON.media)}Ingen mediaspillere funnet.</div>` : ""}`;
 }
 
 /** Favorittstripe — ett trykk starter musikk. */
