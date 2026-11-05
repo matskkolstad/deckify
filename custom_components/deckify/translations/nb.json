@@ -1,0 +1,139 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Legg til et Deckify-dashbord",
+        "description": "Hvert Deckify-dashbord får sitt eget punkt i sidemenyen. Legg til integrasjonen flere ganger for å få flere dashbord.",
+        "data": {
+          "title": "Navn",
+          "url_path": "URL-sti",
+          "icon": "Ikon i sidemenyen",
+          "areas": "Rom som skal være med (tomt = alle)",
+          "show_in_sidebar": "Vis i sidemenyen",
+          "require_admin": "Kun for administratorer"
+        },
+        "data_description": {
+          "url_path": "Dashbordet ligger på /<sti>. Små bokstaver, tall, - og _.",
+          "areas": "Lar du dette stå tomt, finner Deckify alle områder selv."
+        }
+      }
+    },
+    "error": {
+      "invalid_url": "Bruk små bokstaver, tall, - eller _ (2–40 tegn).",
+      "reserved_url": "Den stien er det Home Assistant selv som eier.",
+      "url_taken": "Det finnes allerede et panel på den stien."
+    },
+    "abort": {
+      "already_configured": "Et Deckify-dashbord bruker allerede den stien."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Innstillinger for Deckify",
+        "menu_options": {
+          "general": "Generelt",
+          "behaviour": "Oppførsel",
+          "areas": "Rom",
+          "entities": "Enheter og entiteter",
+          "sensors": "Sensorer",
+          "pages": "Sider",
+          "scenes": "Scener",
+          "advanced": "Avanserte filtre",
+          "reset": "Nullstill oppsett"
+        }
+      },
+      "general": {
+        "title": "Generelt",
+        "description": "Dashbordet ligger på {url}",
+        "data": {
+          "title": "Navn",
+          "icon": "Ikon i sidemenyen",
+          "show_in_sidebar": "Vis i sidemenyen",
+          "require_admin": "Kun for administratorer"
+        }
+      },
+      "areas": {
+        "title": "Rom",
+        "description": "Velg hvilke områder dashbordet skal dekke. Tomt betyr alle, og nye områder dukker opp av seg selv.",
+        "data": {
+          "areas": "Rom"
+        }
+      },
+      "entities": {
+        "title": "Enheter og entiteter",
+        "description": "Deckify oppdager alt selv. Bruk disse listene bare til å fjerne støy eller endre oppførsel.",
+        "data": {
+          "exclude": "Skjul disse entitetene",
+          "as_light": "Regn disse bryterne som lys",
+          "confirm": "Spør før handling (entitets-id eller prefiks)",
+          "show_unavailable": "Vis utilgjengelige entiteter"
+        }
+      },
+      "sensors": {
+        "title": "Sensorer",
+        "description": "Står et felt tomt, velger Deckify en sensor selv.",
+        "data": {
+          "weather": "Værenhet",
+          "climate": "Termostat for klimakortet",
+          "outdoor_temp": "Utetemperatur",
+          "outdoor_hum": "Luftfuktighet ute",
+          "power": "Totalt strømforbruk (W)",
+          "energy": "Energimåler (kWh)",
+          "price": "Strømpris nå",
+          "price_next": "Strømpris neste time",
+          "price_low": "Laveste pris i døgnet",
+          "price_high": "Høyeste pris i døgnet",
+          "todo": "Gjøremålsliste",
+          "alarm_flag": "Hjelpebryter: alarm aktiv",
+          "calendars": "Kalendere",
+          "power_devices": "Effektsensorer per apparat"
+        }
+      },
+      "pages": {
+        "title": "Sider",
+        "description": "Hvilke sider menylinja skal vise.",
+        "data": {
+          "pages": "Sider"
+        }
+      },
+      "scenes": {
+        "title": "Scener",
+        "description": "Scener oppdages automatisk, så det holder å døpe dem om i Hue-appen. Fest de du alltid vil ha først.",
+        "data": {
+          "pinned": "Festede scener",
+          "auto": "Oppdag scener automatisk",
+          "max": "Maks antall scener i stripa",
+          "strip_area_prefix": "Fjern romnavnet fra scenenavnet"
+        }
+      },
+      "advanced": {
+        "title": "Avanserte filtre",
+        "data": {
+          "exclude_platforms": "Ignorer disse integrasjonene",
+          "exclude_patterns": "Ignorer entitets-id-er som matcher (regex)",
+          "battery_warn": "Varsle under batteri-%"
+        }
+      },
+      "reset": {
+        "title": "Nullstill oppsett",
+        "description": "Tømmer kortrekkefølge, skjulte kort, størrelser, grupper og kortinnstillinger for dette dashbordet. Rom og sensorer beholdes.",
+        "data": {
+          "confirm": "Ja, nullstill"
+        }
+      },
+      "behaviour": {
+        "title": "Oppførsel",
+        "description": "Styrer om Deckify fyller dashbordet selv, og om alle skjermer skal vise det samme.",
+        "data": {
+          "auto_fill": "Fyll dashbordet automatisk",
+          "per_device": "La hver skjerm ha sitt eget oppsett"
+        },
+        "data_description": {
+          "auto_fill": "Av: dashbordet starter tomt, og du legger til rom, kort og enheter selv. På: alle rom og kort legges inn av seg selv, og nye enheter dukker opp automatisk.",
+          "per_device": "Av: samme oppsett på alle enheter, lagret på tjeneren. På: nettbrettet, telefonen og PC-en kan ha ulik rekkefølge, skjulte kort og farger — lagret i hver nettleser."
+        }
+      }
+    }
+  }
+}

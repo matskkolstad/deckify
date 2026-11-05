@@ -1,0 +1,139 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add a Deckify dashboard",
+        "description": "Each Deckify dashboard gets its own entry in the sidebar. Add the integration again to create more.",
+        "data": {
+          "title": "Name",
+          "url_path": "URL path",
+          "icon": "Sidebar icon",
+          "areas": "Rooms to include (empty = all)",
+          "show_in_sidebar": "Show in sidebar",
+          "require_admin": "Admins only"
+        },
+        "data_description": {
+          "url_path": "Reachable at /<path>. Lowercase letters, digits, - and _.",
+          "areas": "Leave empty and Deckify discovers every area automatically."
+        }
+      }
+    },
+    "error": {
+      "invalid_url": "Use lowercase letters, digits, - or _ (2-40 characters).",
+      "reserved_url": "That path is used by Home Assistant itself.",
+      "url_taken": "A panel already exists at that path."
+    },
+    "abort": {
+      "already_configured": "A Deckify dashboard already uses that path."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Deckify settings",
+        "menu_options": {
+          "general": "General",
+          "behaviour": "Behaviour",
+          "areas": "Rooms",
+          "entities": "Devices and entities",
+          "sensors": "Sensors",
+          "pages": "Pages",
+          "scenes": "Scenes",
+          "advanced": "Advanced filters",
+          "reset": "Reset layout"
+        }
+      },
+      "general": {
+        "title": "General",
+        "description": "Dashboard at {url}",
+        "data": {
+          "title": "Name",
+          "icon": "Sidebar icon",
+          "show_in_sidebar": "Show in sidebar",
+          "require_admin": "Admins only"
+        }
+      },
+      "areas": {
+        "title": "Rooms",
+        "description": "Pick the areas this dashboard covers. Empty means every area, and new areas appear automatically.",
+        "data": {
+          "areas": "Rooms"
+        }
+      },
+      "entities": {
+        "title": "Devices and entities",
+        "description": "Deckify discovers everything by itself. Use these lists only to remove noise or change behaviour.",
+        "data": {
+          "exclude": "Hide these entities",
+          "as_light": "Treat these switches as lights",
+          "confirm": "Ask before acting (entity id or prefix)",
+          "show_unavailable": "Show unavailable entities"
+        }
+      },
+      "sensors": {
+        "title": "Sensors",
+        "description": "Leave a field empty and Deckify picks a sensor itself.",
+        "data": {
+          "weather": "Weather entity",
+          "climate": "Thermostat for the climate card",
+          "outdoor_temp": "Outdoor temperature",
+          "outdoor_hum": "Outdoor humidity",
+          "power": "Total power (W)",
+          "energy": "Energy meter (kWh)",
+          "price": "Electricity price now",
+          "price_next": "Price next hour",
+          "price_low": "Lowest price today",
+          "price_high": "Highest price today",
+          "todo": "To-do list",
+          "alarm_flag": "Helper: alarm active",
+          "calendars": "Calendars",
+          "power_devices": "Per-appliance power sensors"
+        }
+      },
+      "pages": {
+        "title": "Pages",
+        "description": "Which pages the dock shows.",
+        "data": {
+          "pages": "Pages"
+        }
+      },
+      "scenes": {
+        "title": "Scenes",
+        "description": "Scenes are discovered automatically, so renaming them in the Hue app is enough. Pin the ones you always want first.",
+        "data": {
+          "pinned": "Pinned scenes",
+          "auto": "Discover scenes automatically",
+          "max": "Max scenes in the strip",
+          "strip_area_prefix": "Strip the room name from scene labels"
+        }
+      },
+      "advanced": {
+        "title": "Advanced filters",
+        "data": {
+          "exclude_platforms": "Ignore these integrations",
+          "exclude_patterns": "Ignore entity ids matching (regex)",
+          "battery_warn": "Warn below battery %"
+        }
+      },
+      "reset": {
+        "title": "Reset layout",
+        "description": "Clears card order, hidden cards, sizes, groups and per-card settings for this dashboard. Rooms and sensors are kept.",
+        "data": {
+          "confirm": "Yes, reset"
+        }
+      },
+      "behaviour": {
+        "title": "Behaviour",
+        "description": "Controls whether Deckify fills the dashboard for you, and whether every screen shows the same thing.",
+        "data": {
+          "auto_fill": "Fill the dashboard automatically",
+          "per_device": "Let each screen keep its own layout"
+        },
+        "data_description": {
+          "auto_fill": "Off: the dashboard starts empty and you add rooms, cards and entities yourself. On: every room and card is added for you, and new entities appear automatically.",
+          "per_device": "Off: the same layout on every device, stored on the server. On: tablet, phone and desktop can each have their own order, hidden cards and colours, stored in the browser."
+        }
+      }
+    }
+  }
+}
