@@ -4,14 +4,14 @@
 import {
   h, ICON, WEATHER_ICON, WEATHER_TEXT, fmtNum, isDead, domainOf, nameOf,
   shortName, clamp,
-} from "./core.js?v=2.2.1";
+} from "./core.js?v=2.3.0";
 import {
   roomTile, deviceTile, deviceBig, mediaTile, securityTile, securityAlerts,
   climateTile, powerTile, sceneChip, listGroup, listRow,
   stateText, supportsBig, ic, isCardOn, anyTile, cardWrap,
-} from "./controls.js?v=2.2.1";
-import { weatherIcon, weatherText } from "./weather.js?v=2.2.1";
-import { quickRow, HOME_CHIPS, roomChipScope } from "./quick.js?v=2.2.1";
+} from "./controls.js?v=2.3.0";
+import { weatherIcon, weatherText } from "./weather.js?v=2.3.0";
+import { quickRow, HOME_CHIPS, roomChipScope } from "./quick.js?v=2.3.0";
 
 const NB_DAYS = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
 const NB_MON = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];
@@ -733,11 +733,5 @@ export function dock(ctx, model) {
 
 /* ------------------------------------------------------------ skjermsparer */
 
-export function saver(ctx) {
-  const w = ctx.cfg.weatherEntity ? ctx.hass.states[ctx.cfg.weatherEntity] : null;
-  return `
-    <div class="sc mono">${timeString(ctx.now, ctx.store.get("clock24"), false)}</div>
-    <div class="sd">${h(dateString(ctx.now))}</div>
-    ${w ? `<div class="sw">${ic(WEATHER_ICON[w.state] || "mdi:weather-cloudy")}
-      <span>${fmtNum(w.attributes.temperature, 0)}° · ${h(WEATHER_TEXT[w.state] || w.state)}</span></div>` : ""}`;
-}
+/* Skjermspareren bor nå i saver.js. */
+

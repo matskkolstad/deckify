@@ -3,7 +3,7 @@
  * Bygget for Mats' HA i Oslo. Ingen HACS-avhengighet.
  */
 
-export const DK_VER = "2.2.1";
+export const DK_VER = "2.3.0";
 
 /* Basis-URL for modulene. Integrasjonen serverer dem fra /deckify_files/,
    men kortet skal også fungere hvis noen legger filene et annet sted — så
@@ -374,7 +374,14 @@ export const DEFAULTS = {
   clock24: true,
   showSeconds: false,
   showUnavailable: false,
-  screensaver: 0,            // minutter, 0 = av
+  /* Skjermsparer. SEKUNDER, ikke minutter — den gamle nøkkelen `screensaver`
+     holdt minutter og kunne derfor ikke uttrykke «etter 30 sekunder».
+     Delt mellom skjermene, slik at man setter den ett sted. */
+  saverSec: 30,              // 0 = av
+  saverWeather: true,
+  saverStatus: true,
+  saverMedia: true,
+  saverAgenda: true,
   hideSidebar: false,
   hideHeader: false,
   hiContrast: false,         // tettere kortflater og sterkere tekst
@@ -452,7 +459,7 @@ export function instanceOf(cfgInstance) {
 }
 
 /** Nøkler som bare gjelder denne skjermen. */
-const DEVICE_KEYS = ["layout", "hideSidebar", "hideHeader", "screensaver"];
+const DEVICE_KEYS = ["layout", "hideSidebar", "hideHeader"];
 /** Nøkler som ligger på rot i serveroppsettet, ikke under `ui`. */
 const STRUCT_KEYS = ["order", "hidden", "big", "seps", "cards"];
 /** Alt annet i DEFAULTS er utseende/valg som lagres under `ui`. */

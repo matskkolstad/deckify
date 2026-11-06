@@ -5,7 +5,11 @@ bare et kort. Flere dashbord side om side i sidemenyen, alt oppdages
 automatisk fra Områder → Enheter → Entiteter, og hvert eneste kort kan
 stilles inn i dashbordet eller fra integrasjonens innstillinger.
 
-![Deckify](docs/startskjerm.png)
+[![Validate](https://github.com/matskk/deckify/actions/workflows/validate.yml/badge.svg)](https://github.com/matskk/deckify/actions/workflows/validate.yml)
+[![HACS](https://img.shields.io/badge/HACS-egendefinert-41BDF5.svg)](https://hacs.xyz)
+[![Lisens](https://img.shields.io/badge/lisens-MIT-blue.svg)](LICENSE)
+
+![Deckify](docs/oversikt.png)
 
 ## Hva du får
 
@@ -29,9 +33,40 @@ stilles inn i dashbordet eller fra integrasjonens innstillinger.
 - **Sider:** Hjem, Rom, Media, Huset, Energi, Sikkerhet og «Trenger tilsyn».
 - Dra-og-slipp-redigering som virker med finger, detaljpanel per domene,
   værvarsel med Open-Meteo som reserve, kalender, gjøremål, globalt søk,
-  medieutforsker med høyttalergruppering, skjermsparer og kioskbrytere.
+  medieutforsker med høyttalergruppering og kioskbrytere.
+
+## Hurtigvalg
+
+Raden øverst på Hjem og i hvert rom er din. «Skru alt av», temperaturen i
+rommet, en scene du bruker hele tiden, en bryter du vil nå med ett trykk —
+dra for å flytte, **−** for å fjerne, og **+ Hurtigvalg** for å legge til hva
+som helst. Hver skjerm har sin egen rad.
+
+![Hurtigvalg i et rom](docs/rom.png)
+
+Enhetsvelgeren søker på navn, rom, type og entitets-id samtidig, og flere ord
+må alle treffe — «stue lys» finner taklyset i stua.
+
+![Enhetsvelgeren](docs/enhetsvelger.png)
+
+## Skjermsparer
+
+Stor klokke midt på skjermen med dagens dato under, og valgfritt vær, hvor
+mange lys som står på, hva som spilles og neste hendelse i kalenderen.
+Røyk, lekkasje og åpne dører vises alltid — en skjermsparer som skjuler at
+røykvarsleren går er verre enn ingen skjermsparer.
+
+![Skjermsparer](docs/skjermsparer.png)
+
+Starter etter 30 sekunder som standard; kan settes til 30 s, 1, 2, 5, 10
+eller 30 minutter, eller av, under *Innstillinger → Skjermsparer*. Den følger
+bakgrunnen og fargene du har valgt, og klokka driver langsomt rundt så den
+ikke brenner seg inn i et veggnettbrett som står på hele døgnet. Ett trykk,
+tastetrykk eller sveip vekker skjermen.
 
 ## Installasjon
+
+Krever Home Assistant **2024.7** eller nyere.
 
 ### HACS (anbefalt)
 
@@ -71,6 +106,12 @@ Trykk ⚙ på integrasjonskortet for resten:
 Det samme kan endres inne i dashbordet under **Innstillinger → Dashbord** —
 begge skriver til samme sted.
 
+### Er teksten vanskelig å lese?
+
+Bakgrunnene er myke gradienter, og på enkelte av dem flyter kortflatene litt
+inn i bakgrunnen. **Innstillinger → Utseende → Lesbarhet → Høy kontrast**
+gjør flatene tettere, kantene tydeligere og sekundærteksten sterkere.
+
 ## Som vanlig Lovelace-kort
 
 Kortet kan også brukes i et hvilket som helst dashbord:
@@ -84,8 +125,11 @@ ellers kjører kortet på standardverdier og lagrer bare lokalt.
 
 ## Utvikling
 
+Ingen byggekjede — `src/` er rene ES-moduler, og `tools/build.py` kopierer
+dem til `custom_components/deckify/www/`.
+
 ```bash
-python3 tools/bump.py 2.0.2     # versjon i manifest, const.py, DK_VER og alle ?v=
+python3 tools/bump.py 2.3.1     # versjon i manifest, const.py, DK_VER og alle ?v=
 python3 tools/check_imports.py  # manglende importer, ukjente this._metoder, await i ikke-async
 ./tools/mirror.sh               # speil src/ til tools/.chk/*.mjs
 node tools/.chk/render.mjs      # rendrer alle visninger mot et ekte HA-øyeblikksbilde
@@ -99,6 +143,26 @@ laster en utdatert `core.js` feiler med «does not provide an export named X».
 `bump.py` og `build.py` lister mappa selv og nekter å bygge med blandede
 versjoner.
 
+Deploy-verten er ikke en del av arkivet. Legg dine egne verdier i
+`tools/deploy.env`:
+
+```bash
+DECKIFY_HOST=hassio@homeassistant.local
+DECKIFY_KEY=$HOME/.ssh/id_ed25519
+```
+
+Render-testen trenger et øyeblikksbilde av et ekte Home Assistant
+(`tools/dump_snapshot.py`). Den filen er gitignorert med vilje — den
+inneholder alle entitetsnavnene og posisjonen til hjemmet ditt.
+
+Mer i [CONTRIBUTING.md](CONTRIBUTING.md) og [CHANGELOG.md](CHANGELOG.md).
+
+## Takk til
+
+Inspirert av [homedeck.pro](https://homedeck.pro). Ingen kode derfra er
+brukt; Deckify er skrevet fra bunnen og er ikke tilknyttet dem.
+Skrifttypen er [Figtree](https://github.com/erikdkennedy/figtree) (OFL).
+
 ## Lisens
 
-MIT.
+MIT. Se [LICENSE](LICENSE).

@@ -10,6 +10,8 @@ kort.
 * Felles oppsett på alle skjermer, eller eget per enhet
 * Per-kort-innstillinger: størrelse, info, handlinger, navn, ikon, farge
 * Fem layouter, sju sider, dra-og-slipp-redigering som virker med finger
+* Redigerbare hurtigvalg: egne brikker øverst på Hjem og i hvert rom
+* Skjermsparer med stor klokke og dato, i ditt eget tema
 
 Etter installasjon: start Home Assistant på nytt, og legg til **Deckify**
 under Innstillinger → Enheter og tjenester.

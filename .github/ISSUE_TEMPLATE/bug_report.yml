@@ -1,0 +1,67 @@
+name: Feilrapport
+description: Noe virker ikke som det skal
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Takk for rapporten. **Nettleserkonsollen er nesten alltid svaret** —
+        er kortet helt borte, se etter `does not provide an export named`
+        eller `await is only valid in async functions`.
+  - type: input
+    id: deckify
+    attributes:
+      label: Deckify-versjon
+      description: Står nederst i Innstillinger → System i dashbordet.
+      placeholder: "2.3.0"
+    validations:
+      required: true
+  - type: input
+    id: ha
+    attributes:
+      label: Home Assistant-versjon
+      placeholder: "2026.10.4"
+    validations:
+      required: true
+  - type: dropdown
+    id: layout
+    attributes:
+      label: Layout
+      options: [Startskjerm, Rutenett, Sidekolonne, Liste, Fokus, Vet ikke]
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Skjerm og nettleser
+      placeholder: "iPhone 15, Safari / Fire HD 10, Fully Kiosk / PC, Chrome"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: Hva skjedde?
+      description: Hva forventet du, og hva skjedde i stedet?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steg for å gjenskape
+      placeholder: |
+        1. Gå til fanen Rom
+        2. Velg et rom
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: console
+    attributes:
+      label: Nettleserkonsollen
+      description: Lim inn feilmeldinger. Blir automatisk formatert som kode.
+      render: text
+  - type: textarea
+    id: shot
+    attributes:
+      label: Skjermbilde
+      description: Dra bildet inn hit hvis feilen er visuell.

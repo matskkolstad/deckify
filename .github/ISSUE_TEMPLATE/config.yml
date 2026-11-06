@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Spørsmål om oppsett
+    url: https://github.com/matskk/deckify/discussions
+    about: Spør i Discussions hvis det ikke er en feil.

@@ -19,7 +19,9 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "src")
 WWW = os.path.join(ROOT, "custom_components", "deckify", "www")
-FONTS_SRC = os.path.join(os.path.expanduser("~"), "workspace", "homedeck", "fonts")
+# Fontene ligger allerede ferdig i www/fonts/ og trengs bare hvis du vil
+# bytte dem. Sett DECKIFY_FONTS til en mappe med .woff2-filene.
+FONTS_SRC = os.environ.get("DECKIFY_FONTS", os.path.join(WWW, "fonts"))
 
 
 def main() -> int:

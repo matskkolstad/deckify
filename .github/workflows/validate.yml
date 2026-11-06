@@ -35,3 +35,14 @@ jobs:
         run: python3 tools/check_imports.py
       - name: dist er i takt med src
         run: python3 tools/build.py && git diff --exit-code custom_components/deckify/www
+      - name: Ingen private verdier i arkivet
+        run: |
+          # deploy-verten og HA-øyeblikksbildet skal aldri havne i git
+          ! git ls-files | grep -q 'tools/deploy.env'
+          ! git ls-files | grep -q 'snapshot.json'
+          ! git grep -nE '(hassio@|root@)[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' -- . ':!*.md'
+      - name: Bildene README peker på finnes
+        run: |
+          grep -o 'docs/[a-z0-9-]*\.png' README.md | sort -u | while read -r f; do
+            test -f "$f" || { echo "mangler $f"; exit 1; }
+          done

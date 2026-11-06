@@ -1,6 +1,6 @@
 /* Deckify — styles.js  (alt visuelt uttrykk) */
 
-import { BASE } from "./core.js?v=2.2.1";
+import { BASE } from "./core.js?v=2.3.0";
 
 export const CSS = `
 @font-face{font-family:'HDFigtree';font-style:normal;font-weight:300 800;font-display:swap;
@@ -588,15 +588,54 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
 .confirm .btns{display:flex;gap:10px;justify-content:center;margin-top:20px}
 
 /* skjermsparer */
-#saver{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;
-  flex-direction:column;cursor:pointer;animation:fade .6s ease;
-  background:rgba(8,4,10,.88);backdrop-filter:blur(28px) saturate(.8)}
+/* ========================= SKJERMSPARER =========================
+   Bakgrunnen settes fra JS til SAMME gradient som dashbordet, så et lyst
+   tema gir en lys skjermsparer. Tidligere lå det en nesten svart plate her
+   uansett tema. Et ::before-lag demper gradienten litt, så den store klokka
+   fortsatt har nok kontrast. */
+#saver{position:fixed;inset:0;z-index:90;display:none;align-items:center;
+  justify-content:center;flex-direction:column;cursor:pointer;
+  animation:fade .7s ease;overflow:hidden}
 #saver.on{display:flex}
-#saver .sc{font-size:clamp(90px,17vw,250px);font-weight:200;letter-spacing:-.06em;line-height:.9;
-  font-variant-numeric:tabular-nums}
-#saver .sd{font-size:15px;letter-spacing:.2em;text-transform:uppercase;color:var(--tx-sub);margin-top:18px;font-weight:600}
-#saver .sw{display:flex;align-items:center;gap:12px;margin-top:26px;font-size:22px;font-weight:300;white-space:nowrap}
-#saver .sw ha-icon{--mdc-icon-size:32px;color:var(--accent)}
+#saver::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(118% 88% at 50% 46%,transparent 30%,rgba(0,0,0,.45))}
+.hd.light #saver::before{
+  background:radial-gradient(118% 88% at 50% 46%,transparent 34%,rgba(44,34,22,.13))}
+
+/* Klokka driver sakte rundt. Et veggnettbrett står på hele døgnet, og en
+   helt statisk klokke brenner seg inn i panelet. */
+#saver .saverinner{position:relative;z-index:1;display:flex;flex-direction:column;
+  align-items:center;text-align:center;padding:0 var(--pad);
+  animation:saverdrift 240s ease-in-out infinite alternate}
+@keyframes saverdrift{
+  0%{transform:translate(-1.6vw,-1.4vh)}
+  50%{transform:translate(1.4vw,1.2vh)}
+  100%{transform:translate(1.7vw,-1.1vh)}
+}
+#saver .sc{font-size:clamp(96px,19vw,280px);font-weight:200;letter-spacing:-.06em;
+  line-height:.88;font-variant-numeric:tabular-nums;color:var(--tx)}
+#saver .sd{font-size:clamp(14px,1.5vw,19px);letter-spacing:.2em;text-transform:uppercase;
+  color:var(--tx-sub);margin-top:16px;font-weight:600}
+#saver .sinfo{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:34px}
+#saver .si{display:flex;align-items:center;gap:10px;height:44px;padding:0 20px;
+  border-radius:22px;background:var(--off);border:1px solid var(--off-br);
+  backdrop-filter:blur(14px);font-size:16px;font-weight:300;color:var(--tx-sub);
+  max-width:min(92vw,430px)}
+#saver .si ha-icon{--mdc-icon-size:22px;color:var(--accent)}
+#saver .si span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#saver .si b{font-weight:650;color:var(--tx)}
+#saver .salerts{display:flex;flex-direction:column;gap:9px;margin-top:22px;align-items:center}
+#saver .sa{display:flex;align-items:center;gap:10px;height:42px;padding:0 20px;
+  border-radius:21px;font-size:16px;font-weight:600;
+  background:rgba(245,183,49,.18);border:1px solid rgba(245,183,49,.45);color:var(--tx)}
+#saver .sa.crit{background:rgba(240,68,56,.26);border-color:#f04438;color:#fff}
+#saver .sa ha-icon{--mdc-icon-size:21px}
+#saver .shint{position:absolute;z-index:1;bottom:calc(26px + env(safe-area-inset-bottom,0px));
+  display:flex;align-items:center;gap:9px;font-size:13px;color:var(--tx-sub);
+  letter-spacing:.06em;opacity:.8}
+#saver .shint ha-icon{--mdc-icon-size:18px}
+.hd.phone #saver .sc{font-size:clamp(76px,24vw,180px)}
+.hd.phone #saver .si{height:40px;font-size:14.5px;padding:0 15px}
 
 /* tomt / feil */
 .empty{padding:50px 20px;text-align:center;color:var(--tx-sub);font-size:14px}

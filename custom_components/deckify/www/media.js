@@ -8,10 +8,10 @@
  */
 import {
   h, ICON, clamp, domainOf, nameOf, shortName, isDead, fmtNum, mmss, areaIdOf,
-} from "./core.js?v=2.2.1";
-import { ic, mediaPos, stateText } from "./controls.js?v=2.2.1";
-import { sheet } from "./overlays.js?v=2.2.1";
-import { appleTVs } from "./appletv.js?v=2.2.1";
+} from "./core.js?v=2.3.0";
+import { ic, mediaPos, stateText } from "./controls.js?v=2.3.0";
+import { sheet } from "./overlays.js?v=2.3.0";
+import { appleTVs } from "./appletv.js?v=2.3.0";
 
 /* ------------------------------------------------------- grupper/spillere */
 

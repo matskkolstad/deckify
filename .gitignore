@@ -1,5 +1,14 @@
+# Speilede moduler (lages av tools/mirror.sh) — men render-harnessen SKAL med
 tools/.chk/*.mjs
+!tools/.chk/render.mjs
+
+# Øyeblikksbilde av et ekte Home Assistant: entitetsnavn, posisjon, alt.
+# Lages lokalt med tools/dump_snapshot.py og skal aldri committes.
 tools/.chk/snapshot.json
+
+# Lokale deploy-innstillinger (vert, ssh-nøkkel)
+tools/deploy.env
+
 __pycache__/
 *.pyc
 .DS_Store

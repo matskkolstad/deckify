@@ -9,10 +9,26 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-KEY="$HOME/.ssh/id_ed25519_plantasjen"
-HOST="hassio@10.10.20.19"
-DEST="/config/custom_components/deckify"
+
+# Verten er IKKE hardkodet — dette arkivet er offentlig. Legg dine egne
+# verdier i tools/deploy.env (ignorert av git):
+#
+#   DECKIFY_HOST=hassio@homeassistant.local
+#   DECKIFY_KEY=$HOME/.ssh/id_ed25519
+#
+# eller sett dem i miljøet før du kjører skriptet.
+[ -f "$ROOT/tools/deploy.env" ] && . "$ROOT/tools/deploy.env"
+KEY="${DECKIFY_KEY:-$HOME/.ssh/id_ed25519}"
+HOST="${DECKIFY_HOST:-}"
+DEST="${DECKIFY_DEST:-/config/custom_components/deckify}"
 RESTART="${1:-}"
+
+if [ -z "$HOST" ]; then
+  echo "DECKIFY_HOST er ikke satt. Lag tools/deploy.env med:"
+  echo "  DECKIFY_HOST=hassio@<ip-til-home-assistant>"
+  echo "  DECKIFY_KEY=\$HOME/.ssh/<din-nøkkel>"
+  exit 1
+fi
 
 cd "$ROOT"
 

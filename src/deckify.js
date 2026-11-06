@@ -9,31 +9,32 @@ import {
   DK_VER, h as hEsc, h, ICON, clamp, domainOf, isOn, isDead, nameOf, buildModel, Store,
   bgCss, bgBase, isLightBg, CARD_COLORS, ACCENT_COLORS, callSvc, toggleEntity, fireEvent, deepQuery,
   LIGHT_SWATCHES, DEFAULTS,
-} from "./core.js?v=2.2.1";
-import { cardConfigSheet, cardEntity } from "./cards.js?v=2.2.1";
-import { CSS } from "./styles.js?v=2.2.1";
+} from "./core.js?v=2.3.0";
+import { cardConfigSheet, cardEntity } from "./cards.js?v=2.3.0";
+import { CSS } from "./styles.js?v=2.3.0";
 import {
   viewHomeGrid, viewHomeList, viewHomeSidebar, viewHomeFocus, viewRooms,
-  viewMedia, viewSecurity, viewCustom, dock, saver, visibleScenes, visibleHomeTiles,
+  viewMedia, viewSecurity, viewCustom, dock, visibleScenes, visibleHomeTiles,
   visibleRoomTiles, header,
-} from "./views.js?v=2.2.1";
+} from "./views.js?v=2.3.0";
+import { saverView } from "./saver.js?v=2.3.0";
 import {
   weatherSheet, calendarSheet, todoSheet, playerSheet, pickerSheet, confirmSheet,
-} from "./overlays.js?v=2.2.1";
-import { settingsSheet } from "./settings.js?v=2.2.1";
-import { morph } from "./morph.js?v=2.2.1";
+} from "./overlays.js?v=2.3.0";
+import { settingsSheet } from "./settings.js?v=2.3.0";
+import { morph } from "./morph.js?v=2.3.0";
 import {
   viewMediaPage, groupSheet, browseSheet, groupable, allPlayers, currentGroups,
-} from "./media.js?v=2.2.1";
-import { detailSheet } from "./detail.js?v=2.2.1";
-import { viewEnergy, viewHouse } from "./pages.js?v=2.2.1";
-import { viewStart } from "./start.js?v=2.2.1";
-import { appleTVSheet, appleTVs, isAppleTV } from "./appletv.js?v=2.2.1";
-import { weatherData } from "./weather.js?v=2.2.1";
-import { searchSheet } from "./search.js?v=2.2.1";
-import { viewAttention, attentionCount } from "./attention.js?v=2.2.1";
-import { ic } from "./controls.js?v=2.2.1";
-import { quickIds, chipRoomOf, quickLabel } from "./quick.js?v=2.2.1";
+} from "./media.js?v=2.3.0";
+import { detailSheet } from "./detail.js?v=2.3.0";
+import { viewEnergy, viewHouse } from "./pages.js?v=2.3.0";
+import { viewStart } from "./start.js?v=2.3.0";
+import { appleTVSheet, appleTVs, isAppleTV } from "./appletv.js?v=2.3.0";
+import { weatherData } from "./weather.js?v=2.3.0";
+import { searchSheet } from "./search.js?v=2.3.0";
+import { viewAttention, attentionCount } from "./attention.js?v=2.3.0";
+import { ic } from "./controls.js?v=2.3.0";
+import { quickIds, chipRoomOf, quickLabel } from "./quick.js?v=2.3.0";
 
 console.info(`%c DECKIFY %c ${DK_VER} `,
   "background:#f5b731;color:#2a2008;font-weight:700;border-radius:3px 0 0 3px",
@@ -336,9 +337,12 @@ class DeckifyCard extends HTMLElement {
     if (th !== this._cache.toast) { morph(this._toastEl, th); this._cache.toast = th; }
 
     /* skjermsparer */
-    const sh = this._st.saverOn ? saver(ctx) : "";
+    const sh = this._st.saverOn ? saverView(ctx, model) : "";
     if (sh !== this._cache.saver) { morph(this._saverEl, sh); this._cache.saver = sh; }
     this._saverEl.classList.toggle("on", !!this._st.saverOn);
+    /* Skjermspareren skal følge temaet, ikke være en nesten svart plate:
+       samme gradient som dashbordet, bare uten innholdet oppå. */
+    if (this._st.saverOn && this._cache.bg) this._saverEl.style.background = this._cache.bg;
   }
 
   _viewHtml(ctx, model) {
@@ -411,8 +415,11 @@ class DeckifyCard extends HTMLElement {
 
   _onTick() {
     const sec = this._store?.get("showSeconds");
-    const saverMin = this._store?.get("screensaver") || 0;
-    if (saverMin && !this._st.saverOn && Date.now() - this._lastInput > saverMin * 60000) {
+    /* Sekunder. `saverSec` erstattet den gamle minutt-nøkkelen nettopp fordi
+       30 sekunder ikke kunne uttrykkes i hele minutter. */
+    const saverSec = this._store?.get("saverSec") || 0;
+    if (saverSec && !this._st.saverOn && !this._st.edit && !this._st.overlay &&
+        Date.now() - this._lastInput > saverSec * 1000) {
       this._st.saverOn = true;
     }
     /* klokka og spillerposisjon må oppdateres selv uten tilstandsendring */
@@ -1324,7 +1331,10 @@ class DeckifyCard extends HTMLElement {
         if (k === "hideSidebar" || k === "hideHeader") this._applyKiosk();
         this._render(); break;
       }
-      case "setsaver": this._store.set("screensaver", Number(d.m)); this._render(); break;
+      case "setsaver":
+        this._store.set("saverSec", Number(d.m));
+        this._lastInput = Date.now();          /* ikke start med én gang */
+        this._render(); break;
       case "docktoggle": {
         const cur = new Set(this._store.get("dockHidden") || []);
         cur.has(d.k) ? cur.delete(d.k) : cur.add(d.k);

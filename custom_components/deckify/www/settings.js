@@ -4,8 +4,9 @@
  */
 import {
   h, ICON, CARD_COLORS, ACCENT_COLORS, BACKGROUNDS, bgCss, nameOf, shortName,
-} from "./core.js?v=2.2.1";
-import { ic } from "./controls.js?v=2.2.1";
+} from "./core.js?v=2.3.0";
+import { ic } from "./controls.js?v=2.3.0";
+import { SAVER_DELAYS } from "./saver.js?v=2.3.0";
 
 const LAYOUTS = [
   { id: "start", name: "Startskjerm", desc: "Stor klokke, vær og ett informativt kvadrat per rom. Best som førsteskjerm.", prev: "start" },
@@ -215,6 +216,7 @@ function paneRooms(ctx, model) {
 /* ------------------------------------------------------------ navigasjon */
 
 function paneNav(ctx, model) {
+  const saverSec = ctx.store.get("saverSec") || 0;
   const pages = ctx.store.get("dockPages") || [];
   const rows = pages.length ? pages.map((p) => `
     <div class="optrow">
@@ -261,13 +263,26 @@ function paneNav(ctx, model) {
     <h4>Skjerm</h4>
     ${toggleRow(ctx, "hideSidebar", "Skjul Home Assistants sidemeny", "Lagres per enhet – fint på veggnettbrettet.")}
     ${toggleRow(ctx, "hideHeader", "Skjul Home Assistants topplinje", "Gir full skjerm. Lagres per enhet.")}
+  </div>
+  <div class="setsec">
+    <h4>Skjermsparer</h4>
+    <p>Stor klokke med dagens dato når ingen rører skjermen. Ett trykk vekker
+       den. Følger bakgrunnen og fargene du har valgt.</p>
     <div class="optrow">
-      <div class="ot"><b>Skjermsparer</b><span>Stor klokke med vær når ingen bruker skjermen.</span></div>
+      <div class="ot"><b>Starter etter</b><span>Gjelder alle skjermer.</span></div>
       <div class="seg">
-        ${[0, 2, 5, 10, 30].map((m) => `<div class="s ${ctx.store.get("screensaver") === m ? "sel" : ""}"
-          data-act="setsaver" data-m="${m}">${m === 0 ? "Av" : m + " min"}</div>`).join("")}
+        ${SAVER_DELAYS.map((o) => `<div class="s ${saverSec === o.s ? "sel" : ""}"
+          data-act="setsaver" data-m="${o.s}">${h(o.label)}</div>`).join("")}
       </div>
     </div>
+    ${saverSec ? `
+      ${toggleRow(ctx, "saverWeather", "Vær", "Temperatur og forhold akkurat nå.")}
+      ${toggleRow(ctx, "saverStatus", "Hjemstatus", "Hvor mange lys som står på.")}
+      ${toggleRow(ctx, "saverMedia", "Spilles nå", "Vises bare når noe faktisk spilles.")}
+      ${toggleRow(ctx, "saverAgenda", "Neste hendelse", "Fra kalenderne dashbordet bruker.")}
+      <div class="optrow">
+        <div class="ot"><b>Varsler</b><span>Røyk, lekkasje og åpne dører vises alltid — de kan ikke skrus av.</span></div>
+      </div>` : ""}
   </div>
   <div class="setsec">
     <h4>Startskjerm</h4><p>Åpne Deckify med én gang du går inn i Home Assistant.</p>

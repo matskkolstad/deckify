@@ -1,0 +1,28 @@
+name: Forslag
+description: Foreslå en ny funksjon eller en forbedring
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Hva er problemet?
+      description: >
+        Beskriv situasjonen, ikke løsningen. «Jeg vil se X uten å måtte Y»
+        er mer nyttig enn «legg til en knapp her».
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Hvordan ser du det for deg?
+  - type: dropdown
+    id: where
+    attributes:
+      label: Hvor hører det hjemme?
+      options:
+        - Et kort
+        - En side (Hjem, Rom, Media, Huset, Energi, Sikkerhet)
+        - Hurtigvalg / brikker
+        - Skjermsparer
+        - Innstillinger
+        - Noe annet
