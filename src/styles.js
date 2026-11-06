@@ -554,9 +554,14 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
 .optrow .ot{flex:1}
 .optrow .ot b{display:block;font-size:14px;font-weight:600}
 .optrow .ot span{font-size:12px;color:var(--tx-sub)}
-.seg{display:flex;gap:4px;background:rgba(255,255,255,.07);padding:4px;border-radius:14px}
-.seg .s{padding:7px 14px;border-radius:11px;font-size:13px;font-weight:600;cursor:pointer;color:var(--tx-sub)}
-.seg .s.sel{background:#fff;color:#241d17}
+.seg{display:flex;gap:4px;background:var(--off);padding:4px;border-radius:14px;
+  flex:0 0 auto}
+.seg .s{padding:7px 14px;border-radius:11px;font-size:13px;font-weight:600;
+  cursor:pointer;color:var(--tx-sub);white-space:nowrap}
+.hd .seg .s.sel{background:var(--solid-bg);color:var(--solid-tx)}
+.hd.phone .optrow:has(.seg){flex-direction:column;align-items:stretch;gap:9px}
+.hd.phone .seg{overflow-x:auto;scrollbar-width:none}
+.hd.phone .seg::-webkit-scrollbar{height:0}
 .layoutcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
 .lcard{border-radius:var(--r-sm);background:rgba(255,255,255,.05);border:2px solid transparent;padding:14px;
   cursor:pointer}
