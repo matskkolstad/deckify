@@ -3,7 +3,7 @@
  * Bygget for Mats' HA i Oslo. Ingen HACS-avhengighet.
  */
 
-export const DK_VER = "2.1.1";
+export const DK_VER = "2.2.1";
 
 /* Basis-URL for modulene. Integrasjonen serverer dem fra /deckify_files/,
    men kortet skal også fungere hvis noen legger filene et annet sted — så
@@ -377,6 +377,7 @@ export const DEFAULTS = {
   screensaver: 0,            // minutter, 0 = av
   hideSidebar: false,
   hideHeader: false,
+  hiContrast: false,         // tettere kortflater og sterkere tekst
   showWeather: true,
   showPeople: true,
   showAgenda: true,
@@ -1003,6 +1004,45 @@ export const DOMAIN_LABEL = {
   lawn_mower: "Gressklipper", valve: "Ventiler", todo: "Lister",
   calendar: "Kalendere", text: "Tekst", input_text: "Tekst", sun: "Sol",
 };
+
+/**
+ * Poengsetting for fritekstsøk. Brukes BÅDE av det globale søket og av
+ * enhetsvelgeren — de skal oppføre seg likt, og en ren `includes()` gjorde
+ * velgeren ubrukelig: «lys» traff «Analyse» før «Taklys», og skrivefeil eller
+ * ord i feil rekkefølge ga null treff.
+ *
+ * Reglene, sterkeste først: eksakt navn, navnet begynner på søket, et ORD i
+ * navnet begynner på søket, navnet inneholder søket, område, domenenavn,
+ * entitets-id. Flere ord i søket må ALLE treffe et sted (AND), slik at
+ * «stue lys» finner taklyset i stua.
+ */
+export function matchScore(q, name, area, eid, domain) {
+  const query = (q || "").trim().toLowerCase();
+  if (!query) return 0;
+  const words = query.split(/\s+/).filter(Boolean);
+  if (words.length > 1) {
+    let sum = 0;
+    for (const w of words) {
+      const s = matchScore(w, name, area, eid, domain);
+      if (!s) return 0;
+      sum += s;
+    }
+    return Math.round(sum / words.length) + 60;
+  }
+  const n = (name || "").toLowerCase();
+  const a = (area || "").toLowerCase();
+  const id = (eid || "").toLowerCase();
+  if (n === query) return 1000;
+  if (n.startsWith(query)) return 900 - n.length;
+  const w = n.split(/[\s·\-_/]+/);
+  if (w.some((x) => x.startsWith(query))) return 800 - n.length;
+  if (n.includes(query)) return 600 - n.length;
+  if (a.startsWith(query)) return 500;
+  if (a.includes(query)) return 400;
+  if ((DOMAIN_LABEL[domain] || "").toLowerCase().startsWith(query)) return 350;
+  if (id.includes(query)) return 200;
+  return 0;
+}
 
 const SECURITY_DC = new Set(["door", "window", "opening", "garage_door", "smoke", "gas", "moisture", "motion", "occupancy", "presence"]);
 

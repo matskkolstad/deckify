@@ -9,30 +9,31 @@ import {
   DK_VER, h as hEsc, h, ICON, clamp, domainOf, isOn, isDead, nameOf, buildModel, Store,
   bgCss, bgBase, isLightBg, CARD_COLORS, ACCENT_COLORS, callSvc, toggleEntity, fireEvent, deepQuery,
   LIGHT_SWATCHES, DEFAULTS,
-} from "./core.js?v=2.1.1";
-import { cardConfigSheet, cardEntity } from "./cards.js?v=2.1.1";
-import { CSS } from "./styles.js?v=2.1.1";
+} from "./core.js?v=2.2.1";
+import { cardConfigSheet, cardEntity } from "./cards.js?v=2.2.1";
+import { CSS } from "./styles.js?v=2.2.1";
 import {
   viewHomeGrid, viewHomeList, viewHomeSidebar, viewHomeFocus, viewRooms,
   viewMedia, viewSecurity, viewCustom, dock, saver, visibleScenes, visibleHomeTiles,
   visibleRoomTiles, header,
-} from "./views.js?v=2.1.1";
+} from "./views.js?v=2.2.1";
 import {
   weatherSheet, calendarSheet, todoSheet, playerSheet, pickerSheet, confirmSheet,
-} from "./overlays.js?v=2.1.1";
-import { settingsSheet } from "./settings.js?v=2.1.1";
-import { morph } from "./morph.js?v=2.1.1";
+} from "./overlays.js?v=2.2.1";
+import { settingsSheet } from "./settings.js?v=2.2.1";
+import { morph } from "./morph.js?v=2.2.1";
 import {
   viewMediaPage, groupSheet, browseSheet, groupable, allPlayers, currentGroups,
-} from "./media.js?v=2.1.1";
-import { detailSheet } from "./detail.js?v=2.1.1";
-import { viewEnergy, viewHouse } from "./pages.js?v=2.1.1";
-import { viewStart } from "./start.js?v=2.1.1";
-import { appleTVSheet, appleTVs, isAppleTV } from "./appletv.js?v=2.1.1";
-import { weatherData } from "./weather.js?v=2.1.1";
-import { searchSheet } from "./search.js?v=2.1.1";
-import { viewAttention, attentionCount } from "./attention.js?v=2.1.1";
-import { ic } from "./controls.js?v=2.1.1";
+} from "./media.js?v=2.2.1";
+import { detailSheet } from "./detail.js?v=2.2.1";
+import { viewEnergy, viewHouse } from "./pages.js?v=2.2.1";
+import { viewStart } from "./start.js?v=2.2.1";
+import { appleTVSheet, appleTVs, isAppleTV } from "./appletv.js?v=2.2.1";
+import { weatherData } from "./weather.js?v=2.2.1";
+import { searchSheet } from "./search.js?v=2.2.1";
+import { viewAttention, attentionCount } from "./attention.js?v=2.2.1";
+import { ic } from "./controls.js?v=2.2.1";
+import { quickIds, chipRoomOf, quickLabel } from "./quick.js?v=2.2.1";
 
 console.info(`%c DECKIFY %c ${DK_VER} `,
   "background:#f5b731;color:#2a2008;font-weight:700;border-radius:3px 0 0 3px",
@@ -285,6 +286,9 @@ class DeckifyCard extends HTMLElement {
     this._root.classList.toggle("edit", !!this._st.edit);
     this._root.classList.toggle("embedded", true);
     this._root.classList.toggle("phone", phone);
+    /* Høy kontrast gjør kortflatene tettere og teksten sterkere — nødvendig
+       på de lyse og de mest lavkontrast-bakgrunnene. */
+    this._root.classList.toggle("hicon", !!this._store.get("hiContrast"));
 
     /* bakgrunn */
     const warm = this._store.get("bgAuto") ? model.warmth : 0.35;
@@ -579,7 +583,7 @@ class DeckifyCard extends HTMLElement {
         !n.classList.contains("addcard") && !n.classList.contains("dashed") &&
         !n.classList.contains("addrow") && !n.classList.contains("head"));
       const ctl = path.find((n) => ["hide", "big", "cardcfg", "adddevices", "addscenes",
-        "toggleedit", "unhide", "resetorder", "overlay"].includes(n.dataset?.act));
+        "addchips", "toggleedit", "unhide", "resetorder", "overlay"].includes(n.dataset?.act));
       /* ingen preventDefault her — dra starter først etter 8 px, så
          trykk på − og pil-knappene fungerer som vanlige klikk */
       const handle = path.find((n) => n.classList?.contains("grip"));
@@ -922,6 +926,16 @@ class DeckifyCard extends HTMLElement {
         }
         break;
       }
+      case "qrun": {
+        const dom = domainOf(d.e);
+        if (dom === "script") callSvc(this._hass, "script", "turn_on", { entity_id: d.e });
+        else if (dom === "automation") callSvc(this._hass, "automation", "trigger", { entity_id: d.e });
+        else callSvc(this._hass, dom, "press", { entity_id: d.e });
+        node.classList.add("flash");
+        setTimeout(() => node.classList.remove("flash"), 700);
+        this._remember(d.e);
+        break;
+      }
       case "scene": {
         callSvc(this._hass, "scene", "turn_on", { entity_id: d.e });
         node.classList.add("flash");
@@ -1189,10 +1203,21 @@ class DeckifyCard extends HTMLElement {
       }
       case "adddevices":
         this._openPicker(d.scope, "devices"); break;
+      case "addchips":
+        this._openPicker(d.scope, "devices"); break;
       case "addscenes":
         this._openPicker("scenes", "scenes"); break;
       case "pickdomain":
         this._st.pickerDomain = d.d || null; this._render(); break;
+      case "pickclear":
+        this._st.pickerQ = ""; this._render();
+        setTimeout(() => {
+          const q = this._ovEl?.querySelector("#pickq");
+          if (q) q.focus();
+        }, 40);
+        break;
+      case "searchclear":
+        this._st.searchQ = ""; this._render(); this._focusSearch(0); break;
       case "pick": {
         const scope = this._st.pickerScope;
         const ctx = this._ctx(this._model);
@@ -1209,6 +1234,18 @@ class DeckifyCard extends HTMLElement {
           this._render(); break;
         }
         const cur = this._scopeList(scope);
+        /* I hurtigvalgsraden finnes den samme entiteten i to former: som
+           automatisk avlesning («pill:sensor.bad_temp») og som brikke
+           brukeren har lagt til selv («sensor.bad_temp»). De må telle som
+           ÉN, ellers legger et trykk på en sensor som allerede står der
+           bare på en duplikat i stedet for å fjerne den. */
+        if (scope.startsWith("chips:") && cur.includes("pill:" + d.e)) {
+          this._store.setOrder(scope, cur.filter((x) => x !== "pill:" + d.e));
+          this._store.toggleHidden(scope, "pill:" + d.e);
+          this._refreshScopeIds();
+          this._cache.body = null;
+          this._render(); break;
+        }
         /* på Hjem får entiteter prefiks «dev:» for å skilles fra romkort */
         const id = scope === "home" ? "dev:" + d.e : d.e;
         const has = cur.includes(id);
@@ -1768,6 +1805,10 @@ class DeckifyCard extends HTMLElement {
       const r = m.rooms.find((x) => x.id === scope.slice(5));
       return r ? visibleRoomTiles(ctx, r) : [];
     }
+    /* Hurtigvalgsraden er et skop som alle andre: rekkefølge, skjuling og
+       dra-og-slipp går gjennom nøyaktig samme maskineri som kortene. */
+    if (scope.startsWith("chips:"))
+      return quickIds(ctx, m, scope, chipRoomOf(m, scope));
     if (scope.startsWith("page:")) {
       const p = (this._store.get("dockPages") || []).find((x) => "page:" + x.id === scope);
       return (this._store.data.order[scope] || p?.entities || [])
@@ -1804,8 +1845,10 @@ class DeckifyCard extends HTMLElement {
     const scope = this._st.pickerScope;
     if (!this._model || !scope) return;
     this._st.scopeIds = this._scopeList(scope)
-      .map((i) => i.startsWith("dev:") ? i.slice(4) : i)
-      .filter((i) => !i.startsWith("room:") && !i.startsWith("sys:") && !i.startsWith("media:"));
+      .map((i) => i.startsWith("dev:") ? i.slice(4)
+                : i.startsWith("pill:") ? i.slice(5) : i)
+      .filter((i) => !i.startsWith("room:") && !i.startsWith("sys:") &&
+                     !i.startsWith("media:") && !i.startsWith("act:"));
   }
 
   /* ---------------------------------------------------------- slidere */

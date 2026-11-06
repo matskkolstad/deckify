@@ -4,25 +4,10 @@
  */
 import {
   h, ICON, isOn, isDead, domainOf, nameOf, fullNameOf, shortName, entityIcon,
-  DOMAIN_LABEL, fmtNum,
-} from "./core.js?v=2.1.1";
-import { ic, stateText } from "./controls.js?v=2.1.1";
-import { sheet } from "./overlays.js?v=2.1.1";
-
-/* Treff tidlig i navnet veier tyngre enn treff langt ute i en id. */
-function score(q, name, area, eid, domain) {
-  const n = name.toLowerCase(), a = (area || "").toLowerCase();
-  if (n === q) return 1000;
-  if (n.startsWith(q)) return 900 - n.length;
-  const w = n.split(/[\s·\-]+/);
-  if (w.some((x) => x.startsWith(q))) return 800 - n.length;
-  if (n.includes(q)) return 600 - n.length;
-  if (a.startsWith(q)) return 500;
-  if (a.includes(q)) return 400;
-  if ((DOMAIN_LABEL[domain] || "").toLowerCase().startsWith(q)) return 350;
-  if (eid.toLowerCase().includes(q)) return 200;
-  return 0;
-}
+  DOMAIN_LABEL, fmtNum, matchScore,
+} from "./core.js?v=2.2.1";
+import { ic, stateText } from "./controls.js?v=2.2.1";
+import { sheet } from "./overlays.js?v=2.2.1";
 
 /** Entiteter som er verdt å søke i — samme liste som enhetsvelgeren. */
 export function searchResults(ctx, model, raw) {
@@ -32,12 +17,12 @@ export function searchResults(ctx, model, raw) {
   const out = [];
   for (const it of model.addable) {
     const name = fullNameOf(hass, ctx.cfg, it.eid);
-    const s = score(q, name, it.area, it.eid, it.domain);
+    const s = matchScore(q, name, it.area, it.eid, it.domain);
     if (s > 0) out.push({ ...it, name, s });
   }
   /* rom er også søkbare */
   for (const r of model.rooms) {
-    const s = score(q, r.name, null, r.id, "room");
+    const s = matchScore(q, r.name, null, r.id, "room");
     if (s > 0) out.push({ eid: "room:" + r.id, name: r.name, area: null,
       domain: "room", room: r, s: s + 50 });
   }
@@ -139,9 +124,13 @@ export function searchSheet(ctx, model) {
   const res = searchResults(ctx, model, q);
   const body = `
     <div class="pickhead">
-      <input id="searchq" placeholder="Søk i hele huset …" value="${h(q)}"
-        autocomplete="off" autocorrect="off" spellcheck="false">
-      ${q ? `<div class="sub" style="margin-top:9px;font-size:12px">
+      <div class="pickfield">
+        ${ic("mdi:magnify", "pfic")}
+        <input id="searchq" placeholder="Søk i hele huset …" value="${h(q)}"
+          autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
+        ${q ? `<div class="pfx" data-act="searchclear">${ic(ICON.close)}</div>` : ""}
+      </div>
+      ${q ? `<div class="sub pickcount">
         ${res.length ? `${res.length} treff` : "Ingen treff"}</div>` : ""}
     </div>
     ${q

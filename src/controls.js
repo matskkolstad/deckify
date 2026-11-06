@@ -6,7 +6,7 @@ import {
   lightColor, LIGHT_SWATCHES, CT_STOPS, kelvinToRgb, fmtNum, mmss, WEATHER_ICON,
   BINARY_ICON, SENSOR_ICON, fullNameOf, CARD_SIZES, relTime, areaIdOf,
   sceneName as coreSceneName,
-} from "./core.js?v=2.1.1";
+} from "./core.js?v=2.2.1";
 
 const ic = (name, cls = "") => `<ha-icon class="${cls}" icon="${h(name)}"></ha-icon>`;
 
@@ -873,30 +873,7 @@ export function listGroup(ctx, room, collapsed, ids) {
 
 /* ----------------------------------------------------------- sensorpiller */
 
-export function sensorPills(ctx, room) {
-  const { hass } = ctx;
-  const out = [];
-  if (room.temp && hass.states[room.temp])
-    out.push(`<div class="sensorpill">${ic(ICON.thermo)}<b>${fmtNum(hass.states[room.temp].state, 1)}°</b></div>`);
-  if (room.hum && hass.states[room.hum])
-    out.push(`<div class="sensorpill">${ic(ICON.drop)}<b>${fmtNum(hass.states[room.hum].state, 0)} %</b></div>`);
-  for (const e of room.security) {
-    const st = hass.states[e];
-    if (!st || isDead(st)) continue;
-    const dc = st.attributes.device_class;
-    const open = st.state === "on";
-    const icon = { door: ICON.door, window: ICON.door, opening: ICON.door, motion: ICON.motion,
-      occupancy: ICON.motion, smoke: ICON.smoke, moisture: ICON.leak }[dc];
-    if (!icon) continue;
-    const label = {
-      door: open ? "Åpen" : "Lukket", window: open ? "Åpent" : "Lukket", opening: open ? "Åpen" : "Lukket",
-      motion: open ? "Bevegelse" : "Rolig", occupancy: open ? "Bevegelse" : "Rolig",
-      smoke: open ? "RØYK!" : "OK", moisture: open ? "LEKKASJE!" : "Tørt",
-    }[dc];
-    out.push(`<div class="sensorpill" data-act="more" data-e="${h(e)}" style="${open && ["smoke","moisture"].includes(dc) ? "border-color:#f04438;color:#ff9c93" : ""}">
-      ${ic(icon)}<span>${h(shortName(nameOf(hass, ctx.cfg, e), room.name))}</span><b>${h(label)}</b></div>`);
-  }
-  return out.length ? `<div class="sensorrow">${out.join("")}</div>` : "";
-}
+/* sensorPills er erstattet av den redigerbare hurtigvalgsraden i quick.js.
+   Avlesningene bygges nå som brikker brukeren kan flytte og fjerne. */
 
 export { ic };

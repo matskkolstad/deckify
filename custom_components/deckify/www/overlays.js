@@ -3,9 +3,9 @@
  */
 import {
   h, ICON, WEATHER_ICON, WEATHER_TEXT, fmtNum, mmss, clamp, domainOf,
-  nameOf, fullNameOf, shortName, isDead, entityIcon, DOMAIN_LABEL,
-} from "./core.js?v=2.1.1";
-import { ic, mediaPos, stateText, isCardOn } from "./controls.js?v=2.1.1";
+  nameOf, fullNameOf, shortName, isDead, entityIcon, DOMAIN_LABEL, matchScore,
+} from "./core.js?v=2.2.1";
+import { ic, mediaPos, stateText, isCardOn } from "./controls.js?v=2.2.1";
 
 const NB_DAY_SHORT = ["søn", "man", "tir", "ons", "tor", "fre", "lør"];
 const NB_DAY_HDR = ["MAN", "TIR", "ONS", "TOR", "FRE", "LØR", "SØN"];
@@ -290,11 +290,13 @@ export function playerSheet(ctx) {
 
 export function pickerSheet(ctx, model) {
   const { hass } = ctx;
-  const scope = ctx.pickerScope;
+  const scope = ctx.pickerScope || "";
   const mode = ctx.pickerMode;              // "devices" | "scenes"
-  const q = (ctx.pickerQ || "").trim().toLowerCase();
+  const raw = (ctx.pickerQ || "").trim();
+  const q = raw.toLowerCase();
   const domFilter = ctx.pickerDomain || null;
   const picked = new Set(ctx.scopeIds || []);
+  const isChips = scope.startsWith("chips:");
 
   /* kandidater: scener -> bare scene-domenet, ellers alt som er lovlig */
   let items = mode === "scenes"
@@ -306,17 +308,63 @@ export function pickerSheet(ctx, model) {
   for (const x of items) counts[x.domain] = (counts[x.domain] || 0) + 1;
 
   if (domFilter) items = items.filter((x) => x.domain === domFilter);
-  if (q) items = items.filter((x) =>
-    fullNameOf(hass, ctx.cfg, x.eid).toLowerCase().includes(q) ||
-    x.eid.toLowerCase().includes(q) ||
-    (x.area || "").toLowerCase().includes(q));
 
-  /* grupper på område, valgte øverst */
-  const byArea = new Map();
-  for (const x of items) {
-    const k = x.area || "Uten rom";
-    if (!byArea.has(k)) byArea.set(k, []);
-    byArea.get(k).push(x);
+  /* Søket er poengsatt (samme funksjon som det globale søket), ikke en ren
+     `includes`. Når man søker har gruppering på rom ingen verdi — da vil man
+     ha de beste treffene øverst, ikke dem spredt over ni overskrifter. */
+  let hits = null;
+  if (q) {
+    hits = [];
+    for (const x of items) {
+      const nm = fullNameOf(hass, ctx.cfg, x.eid);
+      const sc = matchScore(q, nm, x.area, x.eid, x.domain);
+      if (sc > 0) hits.push({ ...x, nm, sc: sc + (picked.has(x.eid) ? 40 : 0) });
+    }
+    hits.sort((a, b) => b.sc - a.sc || a.nm.localeCompare(b.nm, "nb"));
+    hits = hits.slice(0, 120);
+  }
+
+  const row = (x, area) => {
+    const on = picked.has(x.eid);
+    const st = hass.states[x.eid];
+    const nm = x.nm || fullNameOf(hass, ctx.cfg, x.eid);
+    return `
+    <div class="pickrow2 ${on ? "sel" : ""}" data-act="pick" data-e="${h(x.eid)}">
+      <div class="ic">${ic(entityIcon(st, x.eid, ctx.cfg))}</div>
+      <div class="txt">
+        <div class="nm">${h(area ? shortName(nm, area) : nm)}</div>
+        <div class="st">${h([DOMAIN_LABEL[x.domain] || x.domain,
+          !area && x.area ? x.area : null,
+          st?.attributes?.unit_of_measurement || null,
+          isDead(st) ? "utilgjengelig" : null].filter(Boolean).join(" · "))}</div>
+      </div>
+      ${ic(on ? ICON.check : ICON.plus, on ? "okmark" : "addmark")}
+    </div>`;
+  };
+
+  let body2;
+  if (q) {
+    body2 = hits.length
+      ? `<div class="setsec"><h4>Treff <span style="opacity:.5;font-weight:600">${hits.length}</span></h4>
+          <div class="pickgrid">${hits.map((x) => row(x, null)).join("")}</div></div>`
+      : `<div class="empty">${ic("mdi:magnify-close")}Fant ingenting som heter «${h(raw)}».</div>`;
+  } else {
+    /* Uten søk: det som allerede er valgt øverst (lett å fjerne igjen),
+       deretter alt gruppert på rom. */
+    const chosen = items.filter((x) => picked.has(x.eid));
+    const byArea = new Map();
+    for (const x of items) {
+      const k = x.area || "Uten rom";
+      if (!byArea.has(k)) byArea.set(k, []);
+      byArea.get(k).push(x);
+    }
+    const groups = [...byArea.entries()].map(([area, list]) => `
+      <div class="setsec"><h4>${h(area)} <span style="opacity:.5;font-weight:600">${list.length}</span></h4>
+        <div class="pickgrid">${list.map((x) => row(x, area)).join("")}</div></div>`).join("");
+    const chosenBlock = chosen.length ? `
+      <div class="setsec"><h4>Valgt <span style="opacity:.5;font-weight:600">${chosen.length}</span></h4>
+        <div class="pickgrid">${chosen.map((x) => row(x, null)).join("")}</div></div>` : "";
+    body2 = chosenBlock + (groups || `<div class="empty">${ic("mdi:magnify")}Ingen treff.</div>`);
   }
 
   const chips = Object.entries(counts)
@@ -328,42 +376,34 @@ export function pickerSheet(ctx, model) {
         <b style="opacity:.55;font-weight:600">${n}</b>
       </div>`).join("");
 
-  const groups = [...byArea.entries()].map(([area, list]) => {
-    const rows = list.map((x) => {
-      const on = picked.has(x.eid);
-      const st = hass.states[x.eid];
-      return `
-      <div class="pickrow2 ${on ? "sel" : ""}" data-act="pick" data-e="${h(x.eid)}">
-        <div class="ic">${ic(entityIcon(st, x.eid, ctx.cfg))}</div>
-        <div class="txt">
-          <div class="nm">${h(shortName(fullNameOf(hass, ctx.cfg, x.eid), area))}</div>
-          <div class="st">${h(DOMAIN_LABEL[x.domain] || x.domain)}${
-            st?.attributes?.unit_of_measurement ? " · " + h(st.attributes.unit_of_measurement) : ""}${
-            isDead(st) ? " · utilgjengelig" : ""}</div>
-        </div>
-        ${ic(on ? ICON.check : ICON.plus, on ? "okmark" : "addmark")}
-      </div>`;
-    }).join("");
-    return `<div class="setsec"><h4>${h(area)} <span style="opacity:.5;font-weight:600">${list.length}</span></h4>
-      <div class="pickgrid">${rows}</div></div>`;
-  }).join("");
+  const title = isChips ? "Legg til hurtigvalg"
+    : mode === "scenes" ? "Legg til scener" : "Legg til enheter";
 
+  /* Hele toppen er sammenklappbar på mobil: domenerekka rullet før den
+     vokste nedover og dyttet treffene ut av skjermen. */
   const body = `
     <div class="pickhead">
-      <input id="pickq" placeholder="Søk i ${mode === "scenes" ? "scener" : "alle enheter"} …"
-        value="${h(ctx.pickerQ || "")}" autocomplete="off">
-      <div class="pickrow" style="margin-top:10px">
+      <div class="pickfield">
+        ${ic("mdi:magnify", "pfic")}
+        <input id="pickq" placeholder="${h(isChips ? "Søk etter en enhet …"
+          : mode === "scenes" ? "Søk i scener …" : "Søk i alle enheter …")}"
+          value="${h(ctx.pickerQ || "")}" autocomplete="off" autocorrect="off"
+          spellcheck="false" enterkeyhint="search">
+        ${raw ? `<div class="pfx" data-act="pickclear">${ic(ICON.close)}</div>` : ""}
+      </div>
+      <div class="pickrow">
         <div class="pick ${!domFilter ? "sel" : ""}" data-act="pickdomain" data-d="">
           ${ic("mdi:select-all")}<span>Alle</span></div>
         ${chips}
       </div>
-      <div class="sub" style="margin-top:9px;font-size:12px">
-        ${picked.size} valgt på denne skjermen. Trykk for å legge til eller fjerne.
+      <div class="sub pickcount">
+        ${picked.size} valgt${isChips ? " i denne raden" : " på denne skjermen"} ·
+        trykk for å legge til eller fjerne
       </div>
     </div>
-    ${groups || `<div class="empty">${ic("mdi:magnify")}Ingen treff.</div>`}`;
+    ${body2}`;
 
-  return sheet(mode === "scenes" ? "Legg til scener" : "Legg til enheter", body, "wide");
+  return sheet(title, body, "wide");
 }
 
 /* --------------------------------------------------------- bekreftelse */

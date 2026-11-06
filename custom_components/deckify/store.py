@@ -23,15 +23,25 @@ from .const import DOMAIN, EVENT_UPDATED, STORE_KEY, STORE_VERSION, default_conf
 _LOGGER = logging.getLogger(__name__)
 
 
+#: Strukturer frontend eier HELT og sender komplette. De må ERSTATTES, ikke
+#: slås sammen: en rekursiv merge kan aldri fjerne en nøkkel, så et skop som
+#: brukeren nullstiller («Nullstill rekkefølgen», eller en hurtigvalgsrad som
+#: settes tilbake til standard) kom tilbake ved neste innlasting. Symptomet er
+#: at endringen ser ut til å virke og så angrer seg selv.
+REPLACE_KEYS = frozenset({"order", "hidden", "big", "seps", "cards"})
+
+
 def _merge(base: dict, patch: dict) -> dict:
     """Slå sammen rekursivt: dict union, alt annet overskrives.
 
     Frontend sender ofte bare det som er endret, så en flat `update()` ville
-    slettet nabonøkler inne i f.eks. `sensors`.
+    slettet nabonøkler inne i f.eks. `sensors`. Unntaket er REPLACE_KEYS.
     """
     out = dict(base)
     for key, val in patch.items():
-        if isinstance(val, dict) and isinstance(out.get(key), dict):
+        if key in REPLACE_KEYS:
+            out[key] = val
+        elif isinstance(val, dict) and isinstance(out.get(key), dict):
             out[key] = _merge(out[key], val)
         else:
             out[key] = val

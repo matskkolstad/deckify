@@ -6,11 +6,11 @@
 import {
   h, ICON, clamp, fmtNum, isDead, shortName, domainOf, truncate,
   WEATHER_ICON, WEATHER_TEXT, lightColor,
-} from "./core.js?v=2.1.1";
-import { ic, anyTile } from "./controls.js?v=2.1.1";
-import { appleTVs } from "./appletv.js?v=2.1.1";
-import { weatherIcon, weatherText } from "./weather.js?v=2.1.1";
-import { dateString, timeString } from "./views.js?v=2.1.1";
+} from "./core.js?v=2.2.1";
+import { ic, anyTile } from "./controls.js?v=2.2.1";
+import { appleTVs } from "./appletv.js?v=2.2.1";
+import { weatherIcon, weatherText } from "./weather.js?v=2.2.1";
+import { dateString, timeString } from "./views.js?v=2.2.1";
 
 const nval = (ctx, eid) => {
   const st = eid ? ctx.hass.states[eid] : null;
@@ -381,16 +381,19 @@ export function viewStart(ctx, model) {
           <div class="inner"><div class="ic">${ic(r.icon)}</div><span>${h(r.name)}</span></div></div>`).join("")
     : "";
 
+  const summaryHtml = summary(ctx, model);
+  const roomsHtml = sorted.map((r) => roomSquare(ctx, r)).join("") + missingRooms;
+
   return `
     ${hero(ctx, model)}
     ${ctx.edit ? `<div class="edithint">Dra romrutene for å endre rekkefølgen, eller trykk − for å skjule et rom her.</div>` : ""}
-    <div class="lbl" style="margin-top:26px">Rommene</div>
-    <div class="startGrid" data-dropzone="${scope}">
-      ${sorted.map((r) => roomSquare(ctx, r)).join("")}${missingRooms}
-    </div>
+    ${roomsHtml || ctx.edit ? `
+      <div class="lbl" style="margin-top:26px">Rommene</div>
+      <div class="startGrid" data-dropzone="${scope}">${roomsHtml}</div>` : ""}
     ${!sorted.length && !ctx.edit
       ? `<div class="empty">${ic(ICON.plus)}Ingen rom er lagt inn ennå — trykk Rediger.</div>` : ""}
-    <div class="lbl" style="margin-top:26px">Oversikt</div>
-    ${ctx.edit ? `<div class="edithint">Dra for å flytte, trykk − for å skjule, eller legg til flere enheter.</div>` : ""}
-    <div class="grid" style="margin-top:9px" data-dropzone="${SUMMARY_SCOPE}">${summary(ctx, model)}</div>`;
+    ${summaryHtml || ctx.edit ? `
+      <div class="lbl" style="margin-top:26px">Oversikt</div>
+      ${ctx.edit ? `<div class="edithint">Dra for å flytte, trykk − for å skjule, eller legg til flere enheter.</div>` : ""}
+      <div class="grid" style="margin-top:9px" data-dropzone="${SUMMARY_SCOPE}">${summaryHtml}</div>` : ""}`;
 }

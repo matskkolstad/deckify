@@ -4,8 +4,8 @@
  */
 import {
   h, ICON, CARD_COLORS, ACCENT_COLORS, BACKGROUNDS, bgCss, nameOf, shortName,
-} from "./core.js?v=2.1.1";
-import { ic } from "./controls.js?v=2.1.1";
+} from "./core.js?v=2.2.1";
+import { ic } from "./controls.js?v=2.2.1";
 
 const LAYOUTS = [
   { id: "start", name: "Startskjerm", desc: "Stor klokke, vær og ett informativt kvadrat per rom. Best som førsteskjerm.", prev: "start" },
@@ -150,6 +150,11 @@ function paneLook(ctx, model) {
     <h4>Bakgrunn</h4><p>Endrer seg med lyset hjemme.</p>
     <div class="bgrow">${bgCells}</div>
     ${toggleRow(ctx, "bgAuto", "Varm opp bakgrunnen", "Bakgrunnen blir varmere jo flere lys som er på.")}
+  </div>
+  <div class="setsec">
+    <h4>Lesbarhet</h4><p>Skru på hvis tekst og kortkanter flyter sammen med bakgrunnen.</p>
+    ${toggleRow(ctx, "hiContrast", "Høy kontrast",
+      "Tettere kortflater, tydeligere kanter og sterkere sekundærtekst.")}
   </div>`;
 }
 

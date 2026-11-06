@@ -1,6 +1,6 @@
 /* Deckify — styles.js  (alt visuelt uttrykk) */
 
-import { BASE } from "./core.js?v=2.1.1";
+import { BASE } from "./core.js?v=2.2.1";
 
 export const CSS = `
 @font-face{font-family:'HDFigtree';font-style:normal;font-weight:300 800;font-display:swap;
@@ -16,19 +16,33 @@ export const CSS = `
   --cardon:#f2e8d0;
   --ink:#221d19;
   --ink-sub:rgba(34,29,25,.52);
-  --off:rgba(255,255,255,.075);
-  --off-hi:rgba(255,255,255,.13);
-  --off-br:rgba(255,255,255,.085);
+  --off:rgba(255,255,255,.095);
+  --off-hi:rgba(255,255,255,.155);
+  --off-br:rgba(255,255,255,.13);
   --tx:#fff;
-  --tx-sub:rgba(255,255,255,.52);
-  --tx-dim:rgba(255,255,255,.34);
-  --label:rgba(255,255,255,.42);
+  --tx-sub:rgba(255,255,255,.62);
+  --tx-dim:rgba(255,255,255,.42);
+  --label:rgba(255,255,255,.52);
   --dock:rgba(28,18,26,.62);
+  /* Fylt knapp («Skru alt av»). Må snus i lyse temaer, ellers er en hvit
+     pille på kremhvit bakgrunn nesten usynlig. */
+  --solid-bg:#fff;
+  --solid-tx:#241d17;
+  --sheet-bg:rgba(22,16,24,.97);
   --gap:14px;
   --pad:26px;
   display:block;
 }
 *,*::before,*::after{box-sizing:border-box}
+
+/* HA setter størrelsen på <ha-svg-icon> INNE i <ha-icon>, ikke på ha-icon
+   selv. Verten blir derfor så høy som linjehøyden (f.eks. 25.2 px rundt et
+   22 px ikon), og glyfen havner et par piksler over midten i hver eneste
+   sirkel og brikke. Det er nøyaktig det Mats så som «ikoner er ikke
+   midtstilt». Her bindes verten til samme mål som ikonet. */
+ha-icon{display:inline-flex;align-items:center;justify-content:center;
+  width:var(--mdc-icon-size,24px);height:var(--mdc-icon-size,24px);
+  line-height:0;flex:0 0 auto;vertical-align:middle}
 
 .hd{
   position:relative; width:100%; min-height:100vh;
@@ -98,7 +112,7 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
   backdrop-filter:blur(12px);transition:background .18s,transform .12s}
 .abtn:active{transform:scale(.96)}
 .abtn ha-icon{--mdc-icon-size:18px}
-.abtn.solid{background:#fff;color:#241d17;border-color:transparent}
+.abtn.solid{background:var(--solid-bg);color:var(--solid-tx);border-color:transparent}
 
 /* -------------------------------------------------------------- scener */
 .scenes{margin-top:22px}
@@ -112,6 +126,29 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
 .chip ha-icon{--mdc-icon-size:17px;opacity:.75}
 .chip.flash{background:var(--accent);color:#231c10;border-color:transparent}
 .chip.dashed{border-style:dashed;opacity:.65}
+.chip b{font-weight:650;font-variant-numeric:tabular-nums;color:var(--tx)}
+.chip span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+
+/* ------------------------------------------------------- hurtigvalg
+   Én redigerbar rad som har erstattet de gamle, hardkodede «Skru alt
+   av/på»-knappene og sensorpillene. Alle brikkene er samme element, slik at
+   dra-og-slipp, skjuling og enhetsvelgeren treffer dem uten særtilfeller. */
+.quickrow{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:14px}
+.quickrow.col{flex-direction:column;align-items:stretch;gap:8px;margin-top:0}
+.quickrow.col .chip{justify-content:center}
+.chip.qa{height:40px;font-weight:600;font-size:14px}
+.hd .chip.qa.solid{background:var(--solid-bg);color:var(--solid-tx);
+  border-color:transparent}
+.hd .chip.qa.solid:hover{background:var(--solid-bg)}
+.hd .chip.qa.solid ha-icon{opacity:1;color:var(--solid-tx)}
+.hd .chip.qp{color:var(--tx-sub)}
+.hd .chip.qp b{color:var(--tx)}
+.hd .chip.qp.crit{border-color:#f04438;color:#ff9c93;background:rgba(240,68,56,.14)}
+.hd .chip.qp.crit b{color:#ff9c93}
+.hd .chip.q.on{background:var(--cardon);color:var(--ink);border-color:transparent}
+.hd .chip.q.on b{color:var(--ink)}
+.hd .chip.q.on ha-icon{opacity:1;color:var(--ink)}
+.hd .chip.dead{opacity:.45}
 
 /* --------------------------------------------------------------- grid */
 .grid{display:grid;gap:var(--gap);margin-top:22px;
@@ -170,6 +207,11 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
 .card.on .bar{background:rgba(34,29,25,.10)}
 .bar .fill{position:absolute;inset:0 auto 0 0;border-radius:15px;background:var(--accent);
   transition:width .18s ease}
+/* En avslått enhet skal ikke ha en knallgul, full slider — avfukteren står
+   på «Av» med målfuktighet 100 %, og kortet så ut som om den gikk for full
+   maskin. Fyllet dempes når kortet ikke er på. */
+.hd .card:not(.on) .bar .fill{background:var(--off-hi)}
+.hd .card:not(.on) .bar .pctl{color:var(--tx-sub)}
 .bar .knob{position:absolute;top:50%;transform:translate(-50%,-50%);width:4px;height:13px;border-radius:2px;
   background:rgba(0,0,0,.30)}
 .bar .pctl{position:absolute;right:11px;top:50%;transform:translateY(-50%);font-size:12.5px;font-weight:700;
@@ -525,6 +567,10 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
   display:flex;gap:4px}
 .lprev i{background:rgba(255,255,255,.3);border-radius:3px;display:block}
 .pickrow{display:flex;flex-wrap:wrap;gap:8px}
+.hd.phone .pickrow{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;
+  margin:0 calc(var(--pad) * -1);padding:2px var(--pad)}
+.hd.phone .pickrow::-webkit-scrollbar{height:0}
+.hd.phone .pickrow .pick{flex:0 0 auto}
 .pick{display:flex;align-items:center;gap:7px;height:34px;padding:0 13px;border-radius:17px;cursor:pointer;
   background:rgba(255,255,255,.08);font-size:13px}
 .pick.sel{background:#fff;color:#241d17}
@@ -559,8 +605,12 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
 /* kamera */
 .camwrap{border-radius:var(--r);overflow:hidden;background:#000;aspect-ratio:16/9;position:relative}
 .camwrap img{width:100%;height:100%;object-fit:cover;display:block}
-.camwrap .cl{position:absolute;left:12px;bottom:10px;font-size:12.5px;font-weight:600;
-  text-shadow:0 1px 4px rgba(0,0,0,.8)}
+.camwrap::after{content:'';position:absolute;left:0;right:0;bottom:0;height:46%;
+  background:linear-gradient(to top,rgba(0,0,0,.72),transparent);pointer-events:none}
+/* Etiketten ligger oppå et svart kamerabilde og må være hvit UANSETT tema —
+   den arvet --tx og ble mørk-på-svart i de lyse temaene. */
+.hd .camwrap .cl{z-index:1;position:absolute;left:12px;bottom:10px;font-size:12.5px;
+  font-weight:600;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.85)}
 
 /* ------------------------------ dra-slider direkte på kortet ---------- */
 .card.sld{touch-action:pan-y}
@@ -656,12 +706,27 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
 .hd.phone .startTemp{font-size:32px}
 
 /* ===================== ENHETSVELGER (ny) ====================== */
-.pickhead{position:sticky;top:-2px;z-index:3;background:rgba(22,16,24,.97);
-  padding:2px 0 14px;margin:-2px 0 6px}
-#pickq{width:100%;height:46px;border-radius:23px;border:1px solid rgba(255,255,255,.14);
-  background:rgba(255,255,255,.07);color:#fff;padding:0 18px;font-size:14.5px;
-  font-family:inherit;outline:none}
-#pickq:focus{border-color:var(--accent)}
+/* Toppen er KLEBRIG og lå med hardkodet mørk farge. I et lyst tema ble den
+   en diger mørk kloss oppå arket, og domenebrikkene (lys-på-lys) forsvant i
+   den — det var dette Mats så som «søkefeltet blir altfor stort». Fargen må
+   følge arket, og rekka med domener må rulle sideveis i stedet for å brekke
+   ned i fem rader på en telefon. */
+.pickhead{position:sticky;top:-2px;z-index:3;background:var(--sheet-bg);
+  padding:2px 0 12px;margin:-2px 0 6px}
+.pickfield{position:relative;display:flex;align-items:center}
+.pickfield .pfic{position:absolute;left:16px;--mdc-icon-size:19px;
+  color:var(--tx-dim);pointer-events:none}
+.pickfield .pfx{position:absolute;right:7px;width:32px;height:32px;border-radius:50%;
+  display:grid;place-items:center;cursor:pointer;color:var(--tx-sub);
+  background:var(--off-hi)}
+.pickfield .pfx ha-icon{--mdc-icon-size:16px}
+#pickq,#searchq{width:100%;height:46px;border-radius:23px;
+  border:1px solid var(--off-br);background:var(--off);color:var(--tx);
+  padding:0 46px 0 44px;font-size:16px;font-family:inherit;outline:none}
+#pickq:focus,#searchq:focus{border-color:var(--accent)}
+#pickq::placeholder,#searchq::placeholder{color:var(--tx-dim)}
+.pickcount{margin-top:9px;font-size:12px}
+.pickrow{margin-top:10px}
 .pickgrid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr))}
 .pickrow2{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:var(--r-sm);
   background:var(--off);border:1px solid var(--off-br);cursor:pointer;
@@ -693,6 +758,24 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
 .card .grip::after{content:"";position:absolute;inset:-9px;border-radius:50%}
 .hd.edit .card .grip{display:flex}
 .chip .grip{display:none}
+/* En brikke i hurtigvalgsraden må kunne dras med FINGER også. Uten et
+   håndtak returnerer _onPointerDown tidlig på touch, og raden var i praksis
+   umulig å omrokere på mobil. Knappene legges inne i brikken: raden ruller
+   sideveis på telefon, og alt utenfor kanten ville blitt klippet bort. */
+.hd.edit .quickrow .chip:not(.dashed){padding-left:34px;padding-right:34px}
+.quickrow .chip .rm{top:50%;left:3px;transform:translateY(-50%);
+  width:26px;height:26px}
+.quickrow .chip .rm ha-icon{--mdc-icon-size:15px}
+.hd.edit .quickrow .chip .grip{display:flex;position:absolute;right:3px;left:auto;
+  top:50%;bottom:auto;transform:translateY(-50%);width:26px;height:26px;
+  border-radius:50%;background:var(--solid-bg);color:var(--solid-tx);
+  align-items:center;justify-content:center;z-index:5;cursor:grab;
+  touch-action:none}
+.hd.edit .quickrow .chip .grip ha-icon{--mdc-icon-size:16px}
+.hd.edit .quickrow .chip .grip::after{content:"";position:absolute;inset:-9px;
+  border-radius:50%}
+.hd.edit .quickrow{padding-top:6px}
+.hd.phone.edit .quickrow:not(.col){padding-top:8px;padding-bottom:12px}
 .card.armed,.chip.armed,.lrow.armed{transform:scale(1.03);
   box-shadow:0 10px 26px -8px rgba(0,0,0,.5)}
 .hd.edit .card.dragging,.hd.edit .chip.dragging{animation:none!important}
@@ -714,10 +797,6 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
 .hd.phone #edittoolbar .ebtn.done span{display:inline}
 
 /* ========================= SØK ========================= */
-#searchq{width:100%;height:52px;border-radius:26px;border:1px solid rgba(255,255,255,.16);
-  background:rgba(255,255,255,.08);color:#fff;padding:0 20px;font-size:16px;
-  font-family:inherit;outline:none}
-#searchq:focus{border-color:var(--accent)}
 .srow{display:flex;align-items:center;gap:13px;padding:11px 13px;border-radius:var(--r-sm);
   background:var(--off);border:1px solid var(--off-br);cursor:pointer;margin-bottom:7px}
 .srow:active{transform:scale(.99)}
@@ -989,8 +1068,12 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
 .hd.phone .player .big-transport{gap:20px;margin-top:12px}
 .hd.phone .focusclock{font-size:clamp(56px,20vw,120px)}
 .hd.phone .hours{margin:0 calc(var(--pad) * -1);padding:0 var(--pad) 6px}
-.hd.phone .sensorrow{flex-wrap:nowrap;overflow-x:auto;margin:0 calc(var(--pad) * -1);
-  padding:0 var(--pad) 6px}
+.hd.phone .sensorrow,
+.hd.phone .quickrow:not(.col){flex-wrap:nowrap;overflow-x:auto;
+  scroll-snap-type:x proximity;margin:0 calc(var(--pad) * -1);
+  padding:2px var(--pad) 8px}
+.hd.phone .quickrow:not(.col)::-webkit-scrollbar{height:0}
+.hd.phone .quickrow:not(.col) .chip{flex:0 0 auto;scroll-snap-align:start}
 .hd.phone .sensorrow::-webkit-scrollbar{height:0}
 .hd.phone .sensorpill{flex:0 0 auto}
 .hd.phone .pricebars{height:92px}
@@ -1014,18 +1097,24 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
    usynlig, og hvit tekst er uleselig. Alt som er stemt for mørkt har en
    .light-motpart her. */
 .hd.light{
-  --off:rgba(22,18,15,.055);
-  --off-hi:rgba(22,18,15,.10);
-  --off-br:rgba(22,18,15,.10);
-  --tx:#1c1815;
-  --tx-sub:rgba(28,24,21,.58);
-  --tx-dim:rgba(28,24,21,.38);
-  --label:rgba(28,24,21,.46);
-  --dock:rgba(255,255,255,.78);
+  /* Flatene var så svake at kortene fløt sammen med bakgrunnen, og
+     sekundærteksten lå rundt 3:1 mot underlaget. Begge deler er hevet. */
+  --off:rgba(22,18,15,.075);
+  --off-hi:rgba(22,18,15,.13);
+  --off-br:rgba(22,18,15,.16);
+  --tx:#17130f;
+  --tx-sub:rgba(23,19,15,.66);
+  --tx-dim:rgba(23,19,15,.46);
+  --label:rgba(23,19,15,.56);
+  --dock:rgba(255,255,255,.86);
+  --solid-bg:#241d17;
+  --solid-tx:#fff;
+  --sheet-bg:rgba(252,250,246,.98);
 }
 .hd.light #bg::after{
   background:radial-gradient(90% 70% at 50% 110%, rgba(40,30,20,.10), transparent 70%)}
-.hd.light .card{box-shadow:0 1px 2px rgba(20,16,12,.04)}
+.hd.light .card{box-shadow:0 2px 6px -2px rgba(30,22,14,.12)}
+.hd.light .camwrap::after{height:40%}
 .hd.light .card.on{box-shadow:0 12px 28px -14px rgba(40,30,20,.45);
   border:1px solid rgba(20,16,12,.10)}
 .hd.light .card.dead{opacity:.5}
@@ -1046,11 +1135,14 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
 .hd.light .navitem:hover{background:rgba(22,18,15,.06)}
 .hd.light .navitem.sel{background:#241d17;color:#fff}
 .hd.light .sensorpill,
-.hd.light .chip{background:rgba(22,18,15,.05);border-color:rgba(22,18,15,.10)}
-.hd.light .chip:hover{background:rgba(22,18,15,.09)}
-.hd.light .chip ha-icon{opacity:.6}
+.hd.light .chip{background:rgba(22,18,15,.055);border-color:rgba(22,18,15,.14)}
+.hd.light .chip:hover{background:rgba(22,18,15,.10)}
+.hd.light .chip ha-icon{opacity:.7}
+.hd.light .chip.qa.solid ha-icon{opacity:1}
 .hd.light .btn{background:rgba(22,18,15,.08);color:var(--tx)}
-.hd.light .pick{background:rgba(22,18,15,.05);border-color:rgba(22,18,15,.10)}
+.hd.light .pick{background:rgba(22,18,15,.055);border-color:rgba(22,18,15,.14)}
+.hd.light .pick.sel{background:#241d17;color:#fff;border-color:transparent}
+.hd.light .pick.sel ha-icon{color:#fff}
 .hd.light .optrow{border-top-color:rgba(22,18,15,.10)}
 .hd.light .sizepick,
 .hd.light .pickrow2{background:rgba(22,18,15,.05);border-color:rgba(22,18,15,.10)}
@@ -1061,7 +1153,7 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
 .hd.light .septxt{background:rgba(22,18,15,.05);border-color:rgba(22,18,15,.14);color:var(--tx)}
 
 /* overlegg og menylinje */
-.hd.light .sheet{background:rgba(252,250,246,.97);border-color:rgba(22,18,15,.10);
+.hd.light .sheet{background:var(--sheet-bg);border-color:rgba(22,18,15,.14);
   box-shadow:0 40px 90px -20px rgba(40,30,20,.35)}
 .hd.light .scrim{background:rgba(40,32,24,.32)}
 .hd.light #dock{border-color:rgba(22,18,15,.10);
@@ -1079,6 +1171,39 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
 .hd.light .card .grip{background:rgba(22,18,15,.10);color:var(--tx-sub)}
 .hd.light .empty{color:var(--tx-sub)}
 
+
+/* ------------------------------------------------- høy kontrast
+   «Det er ikke godt nok skille» — bakgrunnene er myke gradienter, og en
+   kortflate på 7 % hvitt forsvinner i dem. Denne bryteren (Innstillinger →
+   Utseende → Lesbarhet) gjør flatene tettere, kantene synlige og
+   sekundærteksten sterkere, uten å endre formspråket. */
+.hd.hicon{
+  --off:rgba(255,255,255,.135);
+  --off-hi:rgba(255,255,255,.20);
+  --off-br:rgba(255,255,255,.22);
+  --tx-sub:rgba(255,255,255,.72);
+  --tx-dim:rgba(255,255,255,.52);
+  --label:rgba(255,255,255,.62);
+}
+.hd.hicon.light{
+  --off:rgba(22,18,15,.105);
+  --off-hi:rgba(22,18,15,.17);
+  --off-br:rgba(22,18,15,.26);
+  --tx-sub:rgba(23,19,15,.76);
+  --tx-dim:rgba(23,19,15,.58);
+  --label:rgba(23,19,15,.68);
+}
+.hd.hicon .card{box-shadow:0 6px 18px -10px rgba(0,0,0,.6)}
+.hd.hicon.light .card{box-shadow:0 4px 12px -4px rgba(30,22,14,.20)}
+.hd.hicon .card .st,.hd.hicon .srow .st,.hd.hicon .pickrow2 .st{opacity:1}
+.hd.hicon #bg::after{background:radial-gradient(92% 74% at 50% 108%,
+  rgba(0,0,0,.50),transparent 72%)}
+.hd.hicon.light #bg::after{background:radial-gradient(92% 74% at 50% 108%,
+  rgba(40,30,20,.16),transparent 72%)}
+.hd.hicon .minibar,.hd.hicon .bar,.hd.hicon .vbar,.hd.hicon .prog{
+  background:rgba(255,255,255,.22)}
+.hd.hicon.light .minibar,.hd.hicon.light .bar,.hd.hicon.light .vbar,
+.hd.hicon.light .prog{background:rgba(22,18,15,.20)}
 
 /* ------------------------------------------------- kortinnstillinger */
 .cardcfgsheet{width:min(560px,94vw);max-height:88vh}

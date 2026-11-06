@@ -4,13 +4,14 @@
 import {
   h, ICON, WEATHER_ICON, WEATHER_TEXT, fmtNum, isDead, domainOf, nameOf,
   shortName, clamp,
-} from "./core.js?v=2.1.1";
+} from "./core.js?v=2.2.1";
 import {
   roomTile, deviceTile, deviceBig, mediaTile, securityTile, securityAlerts,
-  climateTile, powerTile, sceneChip, listGroup, listRow, sensorPills,
+  climateTile, powerTile, sceneChip, listGroup, listRow,
   stateText, supportsBig, ic, isCardOn, anyTile, cardWrap,
-} from "./controls.js?v=2.1.1";
-import { weatherIcon, weatherText } from "./weather.js?v=2.1.1";
+} from "./controls.js?v=2.2.1";
+import { weatherIcon, weatherText } from "./weather.js?v=2.2.1";
+import { quickRow, HOME_CHIPS, roomChipScope } from "./quick.js?v=2.2.1";
 
 const NB_DAYS = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
 const NB_MON = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];
@@ -107,10 +108,7 @@ export function statusRow(ctx, model) {
       <div class="lbl">Hjemstatus</div>
       <div class="h1" style="margin-top:3px">${h(txt)}</div>
     </div>
-    <div class="allbtns">
-      <div class="abtn" data-act="allon">${ic(ICON.lightOn)}<span>Skru alt på</span></div>
-      <div class="abtn solid" data-act="alloff">${ic(ICON.power)}<span>Skru alt av</span></div>
-    </div>
+    ${quickRow(ctx, model, HOME_CHIPS, null)}
   </div>`;
 }
 
@@ -349,7 +347,16 @@ export function viewHomeList(ctx, model) {
 export function viewHomeSidebar(ctx, model) {
   const { store } = ctx;
   const now = ctx.now;
-  const sel = ctx.sidebarSel || "overview";
+  const homeIds = visibleHomeTiles(ctx, model);
+  /* Et tomt «Oversikt» er bare støy: har brukeren ikke lagt noe der, skal
+     verken menyvalget eller siden vises — men den må komme tilbake så snart
+     man går inn i redigeringsmodus, ellers er den umulig å fylle. */
+  const showOverview = ctx.edit || homeIds.length > 0 ||
+    visibleScenes(ctx, model).length > 0;
+  const sel = showOverview ? (ctx.sidebarSel || "overview")
+    : (ctx.sidebarSel && ctx.sidebarSel !== "overview"
+       ? ctx.sidebarSel : model.rooms[0]?.id || "overview");
+
   const navRooms = model.rooms.map((r) => `
     <div class="navitem ${sel === r.id ? "sel" : ""}" data-act="sbnav" data-r="${h(r.id)}">
       ${ic(r.icon)}<span>${h(r.name)}</span>
@@ -378,13 +385,10 @@ export function viewHomeSidebar(ctx, model) {
       <div class="divider"></div>
       <div class="lbl">Hjemstatus</div>
       <div class="h2" style="margin:4px 0 12px;font-size:19px">${h(model.lightsOn.length ? `${model.lightsOn.length} lys på hjemme` : "Alle lys er av")}</div>
-      <div class="allbtns" style="flex-direction:column;gap:8px">
-        <div class="abtn" data-act="allon" style="justify-content:center">${ic(ICON.lightOn)}<span>Skru alt på</span></div>
-        <div class="abtn solid" data-act="alloff" style="justify-content:center">${ic(ICON.power)}<span>Skru alt av</span></div>
-      </div>
+      ${quickRow(ctx, model, HOME_CHIPS, null, { column: true })}
       <div class="divider"></div>
       <div class="navlist">
-        <div class="navitem ${sel === "overview" ? "sel" : ""}" data-act="sbnav" data-r="overview">${ic(ICON.home)}<span>Oversikt</span></div>
+        ${showOverview ? `<div class="navitem ${sel === "overview" ? "sel" : ""}" data-act="sbnav" data-r="overview">${ic(ICON.home)}<span>Oversikt</span></div>` : ""}
         ${navRooms}
       </div>
     </div>
@@ -443,7 +447,7 @@ export function viewHomeFocus(ctx, model) {
     inner = r ? `
       <div class="lbl">${h(r.lightsOn ? r.lightsOn + " lys på" : "Alt er av")}</div>
       <div class="focusclock mono" style="font-size:clamp(44px,7vw,86px);margin-top:4px">${h(r.name)}</div>
-      ${sensorPills(ctx, r)}
+      ${quickRow(ctx, model, roomChipScope(r.id), r)}
       ${roomGrid(ctx, r)}` : "";
   }
 
@@ -509,12 +513,7 @@ export function roomBody(ctx, model, room) {
   return `
     <div class="lbl">${h(room.lightIds.length ? `${room.lightsOn} av ${room.lightIds.length} lys på` : `${room.controls.length} enheter`)}</div>
     <div class="h1" style="margin:3px 0 0">${h(room.name)}</div>
-    <div class="allbtns" style="margin-top:12px">
-      ${room.lightIds.length ? `
-        <div class="abtn" data-act="roomon" data-r="${h(room.id)}">${ic(ICON.lightOn)}<span>Skru på</span></div>
-        <div class="abtn solid" data-act="roomoff" data-r="${h(room.id)}">${ic(ICON.power)}<span>Skru av</span></div>` : ""}
-    </div>
-    ${sensorPills(ctx, room)}
+    ${quickRow(ctx, model, roomChipScope(room.id), room)}
     ${chips}
     ${roomGrid(ctx, room)}
     ${cams}`;
