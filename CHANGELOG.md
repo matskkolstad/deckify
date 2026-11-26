@@ -4,6 +4,27 @@ Alle merkbare endringer i Deckify. Formatet følger
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), og versjonene
 [semantisk versjonering](https://semver.org/lang/no/).
 
+## [Unreleased]
+
+### Endret
+
+- **«Nullstill» er delt i to.** «Nullstill layout» nullstiller bare
+  rekkefølge, skjulte kort, størrelser, grupper og kortinnstillinger. Rom,
+  sensorer, filtre, sider, scener og farger beholdes. «Nullstill alt» gjør det
+  fortsatt mulig å nullstille hele dashbordet, men med en tydelig advarsel.
+  Integrasjonens «Nullstill layout» bruker samme trygge variant.
+- Informasjonskort for sensorer, binærsensorer, personer, vær, tall, valg og
+  tekst åpner detaljpanelet ved vanlig trykk. Knapper bruker `press` i stedet
+  for en av/på-tjeneste som ikke finnes.
+
+### Rettet
+
+- **Sikkerhetsvarsler er globale.** Røyk, gass, kullos, lekkasje og dør/vindu
+  vises også når sensoren mangler område eller ligger i et rom dashbordet ikke
+  viser. Frakoblede røyk- og lekkasjesensorer blir kritiske varsler.
+- Innstillinger og redigering skjules eller gjøres skrivebeskyttet for brukere
+  som ikke er administrator, i stedet for at endringene stille forsvinner.
+
 ## [2.3.0]
 
 ### Lagt til

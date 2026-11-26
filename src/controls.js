@@ -388,7 +388,9 @@ export function infoTile(ctx, eid, roomName, cardId, scope) {
     sub = nm;
   }
 
-  const act = ["button", "input_button", "script", "scene"].includes(d) ? "toggle" : "tap";
+  /* Alle info-kort bruker samme inngang. `_tapDefault` vet at sensorer,
+     valg og tall skal åpne detaljpanelet, og at knapper skal trykkes. */
+  const act = "tap";
   const big = String(value).length > 5 ? 22 : 30;
 
   return `
@@ -727,7 +729,9 @@ export function mediaPos(st) {
 
 export function securityTile(ctx, model) {
   const alerts = securityAlerts(ctx, model);
-  const monitored = model.rooms.reduce((n, r) => n + r.security.length, 0);
+  const monitored = model.securityAll
+    ? model.securityAll.length
+    : model.rooms.reduce((n, r) => n + r.security.length, 0);
   const bad = alerts.length > 0;
   return `
   <div class="card info ${bad ? "alarm" : ""}" data-act="nav" data-v="security">
@@ -746,14 +750,25 @@ export function securityAlerts(ctx, model) {
   const flag = ctx.cfg.alarmFlag ? ctx.hass.states[ctx.cfg.alarmFlag] : null;
   if (flag && flag.state === "on")
     out.push({ eid: ctx.cfg.alarmFlag, room: "Hjemme", dc: "smoke" });
-  for (const r of model.rooms) {
-    for (const e of r.security) {
-      const st = ctx.hass.states[e];
-      if (!st || st.state !== "on") continue;
-      const dc = st.attributes.device_class;
-      if (["motion", "occupancy", "presence"].includes(dc)) continue;
-      out.push({ eid: e, room: r.name, dc });
+
+  /* Bruk den globale sikkerhetslisten. Den tar med sensorer uten område og
+     sensorer i rom brukeren har valgt bort — sikkerhet skal ikke forsvinne
+     fordi dashbordet er begrenset til noen rom. */
+  const list = model.securityAll
+    || model.rooms.flatMap((r) => r.security.map((e) => ({ eid: e, area: r.name })));
+  for (const it of list) {
+    const st = ctx.hass.states[it.eid];
+    if (!st) continue;
+    const dc = st.attributes?.device_class;
+    if (["motion", "occupancy", "presence"].includes(dc)) continue;
+    const room = it.area || "Uten rom";
+    if (isDead(st)) {
+      if (["smoke", "gas", "carbon_monoxide", "moisture"].includes(dc))
+        out.push({ eid: it.eid, room, dc, offline: true });
+      continue;
     }
+    if (st.state !== "on") continue;
+    out.push({ eid: it.eid, room, dc });
   }
   return out;
 }

@@ -608,16 +608,51 @@ export class Store {
     try { localStorage.removeItem(this.layoutKey); } catch (e) {}
   }
 
-  async resetAll() {
+  /** Nullstill bare layouten. Rom, sensorer, sider og utseende beholdes. */
+  async resetLayout() {
     this.clearLocalLayout();
+    if (this.perDevice) {
+      this.data.order = {};
+      this.data.hidden = {};
+      this.data.big = {};
+      this.data.seps = {};
+      this.data.cards = {};
+      await this.save();
+      return true;
+    }
     if (!this.writable || !this.entryId) return false;
     try {
       const r = await this.hass.callWS({
-        type: "deckify/config/reset", entry_id: this.entryId,
+        type: "deckify/config/reset", entry_id: this.entryId, scope: "layout",
       });
       if (r && r.config) this.server = r.config;
       return true;
-    } catch (e) { return false; }
+    } catch (e) {
+      console.warn("[Deckify] kunne ikke nullstille layouten:", e);
+      return false;
+    }
+  }
+
+  async resetAll() {
+    this.clearLocalLayout();
+    /* Med eget oppsett per skjerm er serveroppsettet en felles mal. Da
+       nullstiller vi bare denne skjermens lokale kopi, ikke alle andres. */
+    if (this.perDevice) {
+      this.data = { ...DEFAULTS };
+      await this.save();
+      return true;
+    }
+    if (!this.writable || !this.entryId) return false;
+    try {
+      const r = await this.hass.callWS({
+        type: "deckify/config/reset", entry_id: this.entryId, scope: "all",
+      });
+      if (r && r.config) this.server = r.config;
+      return true;
+    } catch (e) {
+      console.warn("[Deckify] kunne ikke nullstille dashbordet:", e);
+      return false;
+    }
   }
 
   /* --- rekkefølge / skjulte / størrelse, per "scope" --- */
@@ -1051,7 +1086,7 @@ export function matchScore(q, name, area, eid, domain) {
   return 0;
 }
 
-const SECURITY_DC = new Set(["door", "window", "opening", "garage_door", "smoke", "gas", "moisture", "motion", "occupancy", "presence"]);
+const SECURITY_DC = new Set(["door", "window", "opening", "garage_door", "smoke", "gas", "carbon_monoxide", "moisture", "motion", "occupancy", "presence"]);
 
 export function areaIdOf(hass, eid) {
   const e = hass.entities?.[eid];
@@ -1102,6 +1137,29 @@ export function buildModel(hass, cfg, store) {
   for (const aid of areaIds) bucket[aid] = { controls: [], sensors: [], scenes: [], cameras: [], security: [] };
 
   const assignOf = (eid) => cfg.assign[eid] || areaIdOf(hass, eid);
+
+  /* Sikkerhet er et unntak fra «bare valgte rom»: en røykvarsler uten område,
+     eller i et rom brukeren har valgt bort, skal fortsatt kunne varsle.
+     Denne listen brukes av «Trenger tilsyn», sikkerhetssiden og
+     skjermspareren. */
+  const securityAll = [];
+  for (const eid of Object.keys(hass.states)) {
+    if (domainOf(eid) !== "binary_sensor") continue;
+    const st = hass.states[eid];
+    const dc = st.attributes?.device_class;
+    if (!SECURITY_DC.has(dc)) continue;
+    const reg = ents[eid];
+    if (reg?.hidden || reg?.entity_category) continue;
+    if (cfg.exclude.has(eid)) continue;
+    if (cfg.excludeRe && cfg.excludeRe.test(eid)) continue;
+    if (cfg.excludePlatforms.has(reg?.platform)) continue;
+    const aid = assignOf(eid);
+    securityAll.push({
+      eid, dc,
+      areaId: aid || null,
+      area: areas[aid]?.name || null,
+    });
+  }
 
   for (const eid of Object.keys(hass.states)) {
     const aid = assignOf(eid);
@@ -1230,7 +1288,7 @@ export function buildModel(hass, cfg, store) {
     nameOf(hass, cfg, a.eid).localeCompare(nameOf(hass, cfg, b.eid), "nb"));
 
   return {
-    rooms, looseScenes, addable,
+    rooms, looseScenes, addable, securityAll,
     allLights, lightsOn,
     roomsWithLightOn: rooms.filter((r) => r.lightsOn > 0).length,
     warmth: allLights.length ? lightsOn.length / allLights.length : 0,
@@ -1323,6 +1381,10 @@ export function toggleEntity(hass, eid) {
   const d = domainOf(eid);
   if (d === "scene") return callSvc(hass, "scene", "turn_on", { entity_id: eid });
   if (d === "script") return callSvc(hass, "script", "turn_on", { entity_id: eid });
+  /* Knapper har press, ikke turn_on/turn_off. Uten denne grenen endte de i
+     homeassistant.toggle, som ikke finnes for button/input_button. */
+  if (d === "button" || d === "input_button")
+    return callSvc(hass, d, "press", { entity_id: eid });
   if (d === "lock") {
     const st = hass.states[eid];
     return callSvc(hass, "lock", st?.state === "locked" ? "unlock" : "lock", { entity_id: eid });

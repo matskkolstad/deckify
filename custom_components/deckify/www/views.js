@@ -594,7 +594,7 @@ export function viewMedia(ctx, model) {
 /* ------------------------------------------------------- sikkerhetsside */
 
 const SEC_GROUPS = [
-  { key: "smoke", dcs: ["smoke", "gas"], label: "Røyk og gass", icon: ICON.smoke, on: "RØYK", off: "OK" },
+  { key: "smoke", dcs: ["smoke", "gas", "carbon_monoxide"], label: "Røyk, gass og kullos", icon: ICON.smoke, on: "RØYK", off: "OK" },
   { key: "leak", dcs: ["moisture"], label: "Lekkasje", icon: ICON.leak, on: "VANN", off: "Tørt" },
   { key: "door", dcs: ["door", "window", "opening", "garage_door"], label: "Dører og vinduer", icon: ICON.door, on: "Åpen", off: "Lukket" },
   { key: "motion", dcs: ["motion", "occupancy", "presence"], label: "Bevegelse", icon: ICON.motion, on: "Bevegelse", off: "Rolig" },
@@ -615,8 +615,11 @@ function securityActions(ctx) {
 export function viewSecurity(ctx, model) {
   const { hass } = ctx;
   const alerts = securityAlerts(ctx, model);
-  const all = [];
-  for (const r of model.rooms) for (const e of r.security) all.push({ eid: e, room: r.name });
+  /* Global sikkerhetsliste: også sensorer uten område og sensorer i rom som
+     er valgt bort fra dette dashbordet. */
+  const all = model.securityAll
+    ? model.securityAll.map((x) => ({ eid: x.eid, room: x.area || "Uten rom" }))
+    : model.rooms.flatMap((r) => r.security.map((e) => ({ eid: e, room: r.name })));
 
   const groups = SEC_GROUPS.map((g) => {
     const items = all.filter((x) => g.dcs.includes(hass.states[x.eid]?.attributes?.device_class));
@@ -650,7 +653,7 @@ export function viewSecurity(ctx, model) {
     <div class="h1" style="margin-top:3px">${alerts.length ? h(alerts.length + " aktive varsler") : "Alt er trygt"}</div>
     ${alerts.length ? `<div class="sensorrow">${alerts.map((a) =>
         `<div class="sensorpill" style="border-color:#f04438;color:#ff9c93" data-act="more" data-e="${h(a.eid)}">
-          ${ic(ICON.alert)}<b>${h(shortName(nameOf(hass, ctx.cfg, a.eid), a.room))}</b></div>`).join("")}</div>` : ""}
+          ${ic(ICON.alert)}<b>${h(shortName(nameOf(hass, ctx.cfg, a.eid), a.room))}</b>${a.offline ? `<span> · frakoblet</span>` : ""}</div>`).join("")}</div>` : ""}
     ${securityActions(ctx)}
     ${groups}
     ${camHtml}`;
@@ -722,13 +725,14 @@ export function dock(ctx, model) {
     </div>`;
   }
   const att = ctx.attention || { urgent: 0, action: 0 };
+  const editFab = ctx.canEdit ? `<div id="editfab" data-act="toggleedit">
+    ${ic(ICON.pencil)}<span class="t">Rediger</span></div>` : "";
   return `<div id="dock">${items.map((i) => `
     <div class="dockitem ${ctx.view === i.id ? "sel" : ""}" data-act="nav" data-v="${h(i.id)}">
       ${ic(i.icon)}${i.id === "attention" && att.action
         ? `<b class="badge ${att.urgent ? "crit" : ""}">${att.urgent || att.action}</b>` : ""}
       <span class="t">${h(i.label)}</span></div>`).join("")}</div>
-  <div id="editfab" data-act="toggleedit">
-    ${ic(ICON.pencil)}<span class="t">Rediger</span></div>`;
+  ${editFab}`;
 }
 
 /* ------------------------------------------------------------ skjermsparer */

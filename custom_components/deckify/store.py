@@ -30,6 +30,10 @@ _LOGGER = logging.getLogger(__name__)
 #: at endringen ser ut til å virke og så angrer seg selv.
 REPLACE_KEYS = frozenset({"order", "hidden", "big", "seps", "cards"})
 
+#: Nøklene som utgjør selve layouten. «Nullstill layout» rører bare disse;
+#: rom, sensorer, filtre, sider og utseende beholdes.
+LAYOUT_KEYS = frozenset({"order", "hidden", "big", "seps", "cards"})
+
 
 def _merge(base: dict, patch: dict) -> dict:
     """Slå sammen rekursivt: dict union, alt annet overskrives.
@@ -107,8 +111,23 @@ class DeckifyStore:
         self._fire(entry_id)
         return self.get(entry_id)
 
+    async def async_reset_layout(self, entry_id: str) -> dict:
+        """Nullstill bare layouten for ett dashbord.
+
+        Rom, sensorer, filtre, sider, scener og utseende er brukerens oppsett
+        og skal overleve en «Nullstill layout». Bare rekkefølge, skjulte kort,
+        størrelser, grupper og kortinnstillinger nullstilles.
+        """
+        cur = dict(self._data["entries"].get(entry_id) or default_config())
+        for key in LAYOUT_KEYS:
+            cur[key] = {}
+        self._data["entries"][entry_id] = cur
+        await self._async_save()
+        self._fire(entry_id)
+        return self.get(entry_id)
+
     async def async_reset(self, entry_id: str, keep_title: bool = True) -> dict:
-        """Nullstill til standard (brukes av «Nullstill oppsett»)."""
+        """Nullstill hele oppsettet (brukes av «Nullstill alt»)."""
         title = (self._data["entries"].get(entry_id) or {}).get("title", "Deckify")
         self._data["entries"][entry_id] = default_config(title if keep_title else "Deckify")
         await self._async_save()

@@ -8,7 +8,7 @@ import {
   instanceOf, resolveConfig, BASE,
   DK_VER, h as hEsc, h, ICON, clamp, domainOf, isOn, isDead, nameOf, buildModel, Store,
   bgCss, bgBase, isLightBg, CARD_COLORS, ACCENT_COLORS, callSvc, toggleEntity, fireEvent, deepQuery,
-  LIGHT_SWATCHES, DEFAULTS,
+  LIGHT_SWATCHES,
 } from "./core.js?v=2.3.0";
 import { cardConfigSheet, cardEntity } from "./cards.js?v=2.3.0";
 import { CSS } from "./styles.js?v=2.3.0";
@@ -59,6 +59,14 @@ const FALLBACK_CFG = {
 
 /* Elementtyper som kan dras i redigeringsmodus. */
 const DRAGGABLE = ["card", "chip", "lrow"];
+
+/* Domener der et vanlig trykk skal slå av/på. Alt annet åpner detaljpanelet;
+   knapper trykkes med button.press. */
+const TOGGLE_DOMAINS = new Set([
+  "light", "switch", "input_boolean", "cover", "climate", "fan", "humidifier",
+  "media_player", "lock", "vacuum", "siren", "script", "scene", "automation",
+  "water_heater",
+]);
 
 /* Norske navn på fjernkontrollkommandoene, til tilbakemeldingen. */
 const ATV_LABEL = {
@@ -245,6 +253,8 @@ class DeckifyCard extends HTMLElement {
       now: new Date(), accent: acc.hex, cardColor: card.hex,
       layout: this._phone && s.get("layout") === "sidebar" ? "grid" : s.get("layout"),
       view: this._st.view, edit: this._st.edit,
+      canEdit: s.writable || s.perDevice,
+      canWrite: s.writable || s.perDevice,
       roomSel: this._st.roomSel, sidebarSel: this._st.sidebarSel,
       focusPage: this._st.focusPage, collapsed: this._st.collapsed,
       drag: this._st.drag, forecast: this._forecast, agenda: this._agenda,
@@ -754,7 +764,8 @@ class DeckifyCard extends HTMLElement {
   _tapDefault(cc, eid) {
     if (cc && cc.tap && cc.tap !== "default") return this._runCardAct(cc, "tap", eid);
     if (!eid) return;
-    if (domainOf(eid) === "media_player") {
+    const d = domainOf(eid);
+    if (d === "media_player") {
       /* En Apple TV er en fjernkontroll, ikke en høyttaler — full spiller
          gir ingen mening der. Fjernkontrollen lå tidligere BARE som en brikke
          i Startskjerm-layouten, så den var i praksis utilgjengelig. */
@@ -763,6 +774,15 @@ class DeckifyCard extends HTMLElement {
       }
       this._st.playerEid = eid; this._st.overlay = "player"; this._render(); return;
     }
+    /* Knapper har press, ikke toggle. */
+    if (d === "button" || d === "input_button") {
+      callSvc(this._hass, d, "press", { entity_id: eid });
+      this._toast("Trykket " + nameOf(this._hass, this._cfg, eid));
+      return;
+    }
+    /* Sensorer, valg, tallverdier og lignende har ingen av/på-tjeneste.
+       Da er detaljpanelet det eneste fornuftige svaret på et trykk. */
+    if (!TOGGLE_DOMAINS.has(d)) return this._openDetail(eid);
     if (this._needsConfirm(eid)) return this._askConfirm(eid);
     toggleEntity(this._hass, eid);
   }
@@ -1041,8 +1061,16 @@ class DeckifyCard extends HTMLElement {
 
       /* --- redigering --- */
       case "toggleedit":
+        if (!this._store.writable && !this._store.perDevice) {
+          this._toast("Bare administratorer kan redigere dashbordet");
+          break;
+        }
         this._st.edit = !this._st.edit; this._render(); break;
       case "editnow":
+        if (!this._store.writable && !this._store.perDevice) {
+          this._toast("Bare administratorer kan redigere dashbordet");
+          break;
+        }
         this._st.edit = true; this._st.overlay = null; this._render(); break;
       case "search":
         this._st.overlay = "search"; this._st.searchQ = "";
@@ -1374,19 +1402,52 @@ class DeckifyCard extends HTMLElement {
         this._render(); break;
       }
       case "editpage":
+        if (!this._store.writable && !this._store.perDevice) {
+          this._toast("Bare administratorer kan redigere egne sider");
+          break;
+        }
         this._st.view = "page:" + d.p; this._st.overlay = null; this._st.edit = true; this._render(); break;
       case "reset": {
+        if (!this._store.writable && !this._store.perDevice) {
+          this._toast("Bare administratorer kan nullstille layouten");
+          break;
+        }
         this._st.confirm = {
-          title: "Nullstille Deckify?",
-          text: "Rekkefølge, skjulte kort, farger, layout og egne sider settes tilbake. Enhetene dine røres ikke.",
-          ok: "Nullstill", run: async () => {
-            /* Nullstill på tjeneren også — ellers kommer det gamle oppsettet
-               tilbake neste gang siden lastes. */
-            await this._store.resetAll();
-            this._store.data = { ...DEFAULTS };
+          title: "Nullstille layouten?",
+          text: "Rekkefølge, skjulte kort, størrelser, grupper og kortinnstillinger settes tilbake. Rom, sensorer, sider, farger, scener og filtre beholdes.",
+          ok: "Nullstill layout", run: async () => {
+            const ok = await this._store.resetLayout();
+            this._st.overlay = null;
+            this._st.edit = false;
+            if (!ok) { this._toast("Kunne ikke nullstille layouten"); this._render(); return; }
             await this._store.load();
             this._applyServerConfig();
-            this._st.overlay = null; this._render();
+            this._render();
+            this._toast("Layouten er nullstilt");
+          },
+        };
+        this._st.overlay = "confirm"; this._render(); break;
+      }
+      case "resetall": {
+        if (!this._store.writable && !this._store.perDevice) {
+          this._toast("Bare administratorer kan nullstille dashbordet");
+          break;
+        }
+        const local = this._store.perDevice;
+        this._st.confirm = {
+          title: "Nullstille hele dashbordet?",
+          text: local
+            ? "Dette nullstiller denne skjermens lokale oppsett: romvalg, sensorvalg, filtre, sider, scener, farger og egne sider. Enhetene i Home Assistant røres ikke."
+            : "Dette sletter romvalg, sensorvalg, filtre, sider, scener, farger og egne sider for alle skjermer. Enhetene i Home Assistant røres ikke.",
+          ok: "Nullstill alt", run: async () => {
+            const ok = await this._store.resetAll();
+            this._st.overlay = null;
+            this._st.edit = false;
+            if (!ok) { this._toast("Kunne ikke nullstille dashbordet"); this._render(); return; }
+            await this._store.load();
+            this._applyServerConfig();
+            this._render();
+            this._toast("Dashbordet er nullstilt");
           },
         };
         this._st.overlay = "confirm"; this._render(); break;

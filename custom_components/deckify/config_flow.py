@@ -464,7 +464,7 @@ class DeckifyOptionsFlow(OptionsFlow):
     ) -> ConfigFlowResult:
         if user_input is not None:
             if user_input.get("confirm") and (store := self._store) is not None:
-                await store.async_reset(self.config_entry.entry_id)
+                await store.async_reset_layout(self.config_entry.entry_id)
             return self._done(reload=True)
         return self.async_show_form(
             step_id="reset",

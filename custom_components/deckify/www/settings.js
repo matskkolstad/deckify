@@ -44,8 +44,22 @@ const SECTIONS = [
   { id: "system", name: "System", icon: "mdi:cog-outline" },
 ];
 
+/** Fjern data-act fra alt unntatt det som faktisk kan lagres uten admin.
+ *  Brukes til å gjøre innstillingene ærlige for ikke-administratorer: en
+ *  bryter som ser aktiv ut, men aldri lagres, er verre enn en død bryter. */
+function withoutActions(html, keep = []) {
+  const keepSet = new Set(keep);
+  return html.replace(/<[^>]*\sdata-act="([^"]+)"[^>]*>/g, (tag, act) => {
+    if (keepSet.has(act)) return tag;
+    if (act === "settoggle" && /data-k="(?:hideSidebar|hideHeader)"/.test(tag))
+      return tag;
+    return tag.replace(/\sdata-act="[^"]*"/, "");
+  });
+}
+
 export function settingsSheet(ctx, model) {
   const sec = ctx.setSec || "layout";
+  const canWrite = !!ctx.canWrite;
   const nav = SECTIONS.map((s) => `
     <div class="navitem ${sec === s.id ? "sel" : ""}" data-act="setsec" data-s="${h(s.id)}">
       ${ic(s.icon)}<span>${h(s.name)}</span></div>`).join("");
@@ -58,6 +72,15 @@ export function settingsSheet(ctx, model) {
   else if (sec === "rooms") pane = paneRooms(ctx, model);
   else if (sec === "nav") pane = paneNav(ctx, model);
   else pane = paneSystem(ctx, model);
+
+  if (!canWrite) {
+    /* Layoutvalg og kioskbrytere lagres på denne enheten. Alt som krever
+       server-skriving fjernes, i stedet for å se ut som det virker. */
+    pane = withoutActions(pane, ["setlayout", "defaultpanel"]);
+    pane = `<div class="setsec"><p>Du er ikke administrator. Layoutvalg og
+      skjermvalg lagres på denne enheten, men resten av innstillingene kan
+      bare leses.</p></div>${pane}`;
+  }
 
   return `<div class="scrim" data-act="closeoverlay"></div>
   <div class="sheet full">
@@ -90,11 +113,13 @@ function paneLayout(ctx) {
     <h4>Ordne skjermen</h4>
     <p>Dra kort for \u00e5 flytte, trykk \u2212 for \u00e5 skjule, og pilen for dobbel st\u00f8rrelse.
        Gjelder skjermen du st\u00e5r p\u00e5 \u2014 hvert rom og hver side har sin egen rekkef\u00f8lge.</p>
-    <div class="btn primary" data-act="editnow">${ic(ICON.pencil)}Rediger denne skjermen</div>
+    ${ctx.canEdit
+      ? `<div class="btn primary" data-act="editnow">${ic(ICON.pencil)}Rediger denne skjermen</div>`
+      : `<p class="sub">Redigering av rekkefølge og kort krever administrator.</p>`}
   </div>
   <div class="setsec">
     <h4>Layout</h4>
-    <p>Rekkefølgen og de skjulte kortene du setter gjelder i alle fire. Media, Sikkerhet, Scener og egne sider følger valget. Lagres per enhet.</p>
+    <p>Rekkefølgen og de skjulte kortene du setter gjelder i alle fem. Media, Sikkerhet, Scener og egne sider følger valget. Lagres per enhet.</p>
     <div class="layoutcards">${cards}</div>
   </div>`;
 }
@@ -329,8 +354,16 @@ function paneSystem(ctx, model) {
     <div class="optrow"><div class="ot"><b>Versjon</b><span>Deckify ${h(ctx.version)} · lokal, ingen sky</span></div></div>
   </div>
   <div class="setsec">
-    <h4>Nullstill</h4><p>Setter rekkefølge, skjulte kort, farger og layout tilbake til utgangspunktet.</p>
-    <div class="btn danger" data-act="reset">${ic("mdi:restore")}Nullstill Deckify</div>
+    <h4>Nullstill</h4>
+    <p>Nullstill layout setter rekkefølge, skjulte kort, størrelser, grupper og
+       kortinnstillinger tilbake. Rom, sensorer, sider, farger, scener og filtre
+       beholdes.</p>
+    ${ctx.canEdit ? `<div class="btn danger" data-act="reset">${ic("mdi:restore")}Nullstill layout</div>` : ""}
+    ${ctx.store.writable ? `
+      <p style="margin-top:14px">${ctx.store.perDevice
+        ? "Nullstill alt nullstiller denne skjermens lokale oppsett."
+        : "Nullstill alt sletter også romvalg, sensorvalg, filtre, sider, scener, farger og egne sider for alle skjermer."}</p>
+      <div class="btn danger" data-act="resetall">${ic("mdi:delete-outline")}Nullstill alt</div>` : ""}
   </div>`;
 }
 
@@ -378,8 +411,7 @@ function paneDeck(ctx, model) {
     <b>${h(label)}</b><span>${eid ? h(eid) : "ikke funnet"}</span></div>
     <span class="sub">${manual[key] ? "valgt" : "auto"}</span></div>`;
 
-  return `
-  ${ro ? `<div class="setsec"><p>Du er ikke administrator, så dette oppsettet kan bare leses.</p></div>` : ""}
+  const body = `
   <div class="setsec">
     <h4>Oppførsel</h4>
     <div class="optrow" data-act="cfgtoggle" data-k="auto_fill" data-v="${autoFill ? "" : "1"}">
@@ -438,6 +470,8 @@ function paneDeck(ctx, model) {
         : ctx.store.writable ? "på tjeneren, delt mellom alle brukere og skjermer"
                              : "bare lokalt i denne nettleseren"}</span></div></div>
   </div>`;
+
+  return ro ? withoutActions(body) : body;
 }
 
 function toggleRow(ctx, key, title, desc) {

@@ -40,7 +40,7 @@
           "pages": "Sider",
           "scenes": "Scener",
           "advanced": "Avanserte filtre",
-          "reset": "Nullstill oppsett"
+          "reset": "Nullstill layout"
         }
       },
       "general": {
@@ -116,7 +116,7 @@
         }
       },
       "reset": {
-        "title": "Nullstill oppsett",
+        "title": "Nullstill layout",
         "description": "Tømmer kortrekkefølge, skjulte kort, størrelser, grupper og kortinnstillinger for dette dashbordet. Rom og sensorer beholdes.",
         "data": {
           "confirm": "Ja, nullstill"

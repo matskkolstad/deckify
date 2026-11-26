@@ -162,18 +162,22 @@ async def ws_patch_config(
     {
         vol.Required("type"): f"{DOMAIN}/config/reset",
         vol.Required("entry_id"): str,
+        vol.Optional("scope", default="layout"): vol.In(["layout", "all"]),
     }
 )
 @websocket_api.async_response
 async def ws_reset_config(
     hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict
 ) -> None:
-    """Nullstill dashbordet til selvoppdagende standard."""
+    """Nullstill layouten, eller hele dashbordet med scope=all."""
     store = _store(hass)
     if store is None or _entry(hass, msg["entry_id"]) is None:
         connection.send_error(msg["id"], "not_found", "Ukjent Deckify-dashbord")
         return
-    cfg = await store.async_reset(msg["entry_id"])
+    if msg.get("scope", "layout") == "all":
+        cfg = await store.async_reset(msg["entry_id"])
+    else:
+        cfg = await store.async_reset_layout(msg["entry_id"])
     connection.send_result(msg["id"], {"config": cfg})
 
 

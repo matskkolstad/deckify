@@ -30,36 +30,52 @@ const AGO = (iso) => {
 export function collectIssues(ctx, model) {
   const { hass, cfg } = ctx;
   const out = [];
+  const security = model.securityAll
+    || model.rooms.flatMap((r) => r.security.map((e) => ({ eid: e, area: r.name })));
+  const handledDead = new Set();
 
-  /* --- farer: røyk, gass, vannlekkasje ------------------------------- */
-  for (const r of model.rooms)
-    for (const e of r.security) {
-      const st = hass.states[e];
-      if (st?.state !== "on") continue;
-      const dc = st.attributes.device_class;
-      if (["smoke", "gas", "carbon_monoxide"].includes(dc))
-        out.push({ lvl: 3, icon: ICON.smoke, kind: "Alarm",
-          title: nameOf(hass, cfg, e), sub: r.name + " · utløst " + AGO(st.last_changed),
-          eid: e });
-      else if (dc === "moisture")
-        out.push({ lvl: 3, icon: ICON.leak, kind: "Vann",
-          title: nameOf(hass, cfg, e), sub: r.name + " · siden " + AGO(st.last_changed),
-          eid: e });
+  /* --- farer: røyk, gass, kullos og vannlekkasje ---------------------- */
+  for (const it of security) {
+    const e = it.eid;
+    const st = hass.states[e];
+    if (!st) continue;
+    const dc = st.attributes?.device_class;
+    const area = it.area || "Uten rom";
+    const critical = ["smoke", "gas", "carbon_monoxide", "moisture"].includes(dc);
+    if (isDead(st)) {
+      if (critical) {
+        handledDead.add(e);
+        out.push({ lvl: 3, icon: dc === "moisture" ? ICON.leak : ICON.smoke,
+          kind: "Alarm", title: nameOf(hass, cfg, e),
+          sub: area + " · ikke tilgjengelig", eid: e });
+      }
+      continue;
     }
+    if (st.state !== "on") continue;
+    if (["smoke", "gas", "carbon_monoxide"].includes(dc))
+      out.push({ lvl: 3, icon: ICON.smoke, kind: "Alarm",
+        title: nameOf(hass, cfg, e), sub: area + " · utløst " + AGO(st.last_changed),
+        eid: e });
+    else if (dc === "moisture")
+      out.push({ lvl: 3, icon: ICON.leak, kind: "Vann",
+        title: nameOf(hass, cfg, e), sub: area + " · siden " + AGO(st.last_changed),
+        eid: e });
+  }
 
   /* --- åpne dører og vinduer ----------------------------------------- */
-  for (const r of model.rooms)
-    for (const e of r.security) {
-      const st = hass.states[e];
-      if (st?.state !== "on") continue;
-      const dc = st.attributes.device_class;
-      if (!["door", "window", "opening", "garage_door"].includes(dc)) continue;
-      const mins = (Date.now() - new Date(st.last_changed).getTime()) / 60000;
-      out.push({ lvl: mins > 20 ? 2 : 1, icon: ICON.door,
-        kind: dc === "window" ? "Vindu" : "Dør",
-        title: nameOf(hass, cfg, e), sub: r.name + " · åpen i " + AGO(st.last_changed),
-        eid: e });
-    }
+  for (const it of security) {
+    const e = it.eid;
+    const st = hass.states[e];
+    if (!st || isDead(st) || st.state !== "on") continue;
+    const dc = st.attributes.device_class;
+    if (!["door", "window", "opening", "garage_door"].includes(dc)) continue;
+    const mins = (Date.now() - new Date(st.last_changed).getTime()) / 60000;
+    out.push({ lvl: mins > 20 ? 2 : 1, icon: ICON.door,
+      kind: dc === "window" ? "Vindu" : "Dør",
+      title: nameOf(hass, cfg, e),
+      sub: (it.area || "Uten rom") + " · åpen i " + AGO(st.last_changed),
+      eid: e });
+  }
 
   /* --- tomme batterier ------------------------------------------------ */
   const warn = cfg.batteryWarn ?? 25;
@@ -112,6 +128,7 @@ export function collectIssues(ctx, model) {
   const deadDev = new Map();
   let deadHelpers = 0;
   for (const it of model.addable) {
+    if (handledDead.has(it.eid)) continue;
     const st = hass.states[it.eid];
     if (!st || st.state !== "unavailable") continue;
     const reg = hass.entities?.[it.eid];

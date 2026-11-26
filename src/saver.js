@@ -15,7 +15,7 @@
  * står på hele døgnet brenner en statisk klokke seg inn i panelet.
  */
 import {
-  h, ICON, fmtNum, domainOf, nameOf,
+  h, ICON, fmtNum, domainOf, nameOf, isDead,
 } from "./core.js?v=2.3.0";
 import { ic } from "./controls.js?v=2.3.0";
 import { weatherIcon, weatherText } from "./weather.js?v=2.3.0";
@@ -33,7 +33,7 @@ export const SAVER_DELAYS = [
 ];
 
 const ALERT_TEXT = {
-  smoke: "RØYK", gas: "GASS", moisture: "VANNLEKKASJE",
+  smoke: "RØYK", gas: "GASS", carbon_monoxide: "KULLOS", moisture: "VANNLEKKASJE",
   door: "Dør åpen", window: "Vindu åpent", opening: "Åpen", garage_door: "Garasje åpen",
 };
 
@@ -81,17 +81,30 @@ function nowPlaying(ctx, model) {
 /** Ting som bør vekke deg selv om skjermen sover. */
 function alerts(ctx, model) {
   const out = [];
-  for (const r of model.rooms) {
-    for (const e of r.security) {
-      const st = ctx.hass.states[e];
-      if (!st || st.state !== "on") continue;
-      const dc = st.attributes.device_class;
-      if (["motion", "occupancy", "presence"].includes(dc)) continue;
-      const txt = ALERT_TEXT[dc];
-      if (!txt) continue;
-      const crit = ["smoke", "gas", "moisture"].includes(dc);
-      out.push({ txt, room: r.name, crit, icon: crit ? ICON.smoke : ICON.door });
+  const list = model.securityAll
+    || model.rooms.flatMap((r) => r.security.map((e) => ({ eid: e, area: r.name })));
+  for (const it of list) {
+    const e = it.eid;
+    const st = ctx.hass.states[e];
+    if (!st) continue;
+    const dc = st.attributes?.device_class;
+    if (["motion", "occupancy", "presence"].includes(dc)) continue;
+    const txt = ALERT_TEXT[dc];
+    if (!txt) continue;
+    const crit = ["smoke", "gas", "carbon_monoxide", "moisture"].includes(dc);
+    const room = it.area || "Uten rom";
+    if (isDead(st)) {
+      if (crit) out.push({
+        txt: txt + " – frakoblet", room, crit,
+        icon: dc === "moisture" ? ICON.leak : ICON.smoke,
+      });
+      continue;
     }
+    if (st.state !== "on") continue;
+    out.push({
+      txt, room, crit,
+      icon: crit ? (dc === "moisture" ? ICON.leak : ICON.smoke) : ICON.door,
+    });
   }
   /* kritisk først, og aldri mer enn tre — dette er en skjermsparer */
   out.sort((a, b) => (b.crit ? 1 : 0) - (a.crit ? 1 : 0));

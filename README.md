@@ -101,7 +101,7 @@ Trykk ⚙ på integrasjonskortet for resten:
 | **Sider** | hvilke sider menylinja viser |
 | **Scener** | festede scener, hvor mange som vises, korte navn |
 | **Avanserte filtre** | ignorerte integrasjoner, regex-filtre, batterigrense |
-| **Nullstill oppsett** | tøm rekkefølge, skjulte kort, størrelser og kortinnstillinger |
+| **Nullstill layout** | tøm rekkefølge, skjulte kort, størrelser og kortinnstillinger |
 
 Det samme kan endres inne i dashbordet under **Innstillinger → Dashbord** —
 begge skriver til samme sted.
