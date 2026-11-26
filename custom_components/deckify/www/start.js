@@ -10,7 +10,7 @@ import {
 import { ic, anyTile } from "./controls.js?v=2.3.0";
 import { appleTVs } from "./appletv.js?v=2.3.0";
 import { weatherIcon, weatherText } from "./weather.js?v=2.3.0";
-import { dateString, timeString } from "./views.js?v=2.3.0";
+import { dateString, timeString, onboarding } from "./views.js?v=2.3.0";
 
 const nval = (ctx, eid) => {
   const st = eid ? ctx.hass.states[eid] : null;
@@ -390,8 +390,7 @@ export function viewStart(ctx, model) {
     ${roomsHtml || ctx.edit ? `
       <div class="lbl" style="margin-top:26px">Rommene</div>
       <div class="startGrid" data-dropzone="${scope}">${roomsHtml}</div>` : ""}
-    ${!sorted.length && !ctx.edit
-      ? `<div class="empty">${ic(ICON.plus)}Ingen rom er lagt inn ennå — trykk Rediger.</div>` : ""}
+    ${!sorted.length && !ctx.edit ? onboarding(ctx) : ""}
     ${summaryHtml || ctx.edit ? `
       <div class="lbl" style="margin-top:26px">Oversikt</div>
       ${ctx.edit ? `<div class="edithint">Dra for å flytte, trykk − for å skjule, eller legg til flere enheter.</div>` : ""}

@@ -59,6 +59,12 @@ ha-icon{display:inline-flex;align-items:center;justify-content:center;
 #shell{position:relative; z-index:1; display:flex; flex-direction:column;
   min-height:100vh; padding:var(--pad) var(--pad) 104px}
 .hd.embedded #shell{min-height:calc(100vh - 56px)}
+@supports (height:100dvh){
+  .hd{min-height:100dvh}
+  .hd.embedded{min-height:calc(100dvh - 56px)}
+  #shell{min-height:100dvh}
+  .hd.embedded #shell{min-height:calc(100dvh - 56px)}
+}
 
 /* ------------------------------------------------------------ typografi */
 .lbl{font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--label);font-weight:600}
@@ -645,6 +651,18 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
 /* tomt / feil */
 .empty{padding:50px 20px;text-align:center;color:var(--tx-sub);font-size:14px}
 .empty ha-icon{--mdc-icon-size:40px;opacity:.4;display:block;margin:0 auto 12px}
+
+/* Førstegangsskjerm */
+.onboard{max-width:560px;margin:42px auto;padding:30px 26px;text-align:center;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  border-radius:var(--r)}
+.onboard .ic{width:64px;height:64px;margin:0 auto 16px;border-radius:20px;
+  display:grid;place-items:center;background:var(--accent);color:#2a2008}
+.onboard .ic ha-icon{--mdc-icon-size:32px}
+.onboard .h1{font-size:25px;font-weight:750;color:var(--tx)}
+.onboard p{max-width:430px;margin:10px auto 0;color:var(--tx-sub);font-size:14px;line-height:1.55}
+.onboard .btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.hd.light .onboard{background:rgba(0,0,0,.045);border-color:rgba(0,0,0,.11)}
 
 /* kamera */
 .camwrap{border-radius:var(--r);overflow:hidden;background:#000;aspect-ratio:16/9;position:relative}
@@ -1289,4 +1307,17 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
 .txtin:focus{border-color:var(--accent)}
 .btnrow{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px}
 .cardcfg .optrow{cursor:pointer}
+
+/* Tastatur og redusert bevegelse */
+.hd [data-act]:focus-visible,
+.hd input:focus-visible,
+.hd textarea:focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+@media (prefers-reduced-motion: reduce){
+  .hd *, .hd *::before, .hd *::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+    scroll-behavior:auto !important}
+}
 `;

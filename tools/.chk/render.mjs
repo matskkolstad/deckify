@@ -277,7 +277,7 @@ run("tom/hjem", () => {
   const html = views.viewHomeGrid(emptyCtx({ layout: "grid" }), model);
   const cards = (html.match(/class="card[" ]/g) || []).length;
   if (cards) throw new Error(cards + " kort på et tomt dashbord");
-  if (!/Tomt dashbord/.test(html)) throw new Error("mangler tom-tekst");
+  if (!/Kom i gang/.test(html)) throw new Error("mangler onboarding");
   return html;
 });
 run("tom/scener", () => {
@@ -288,7 +288,7 @@ run("tom/scener", () => {
 run("tom/start", () => {
   const html = sta.viewStart(emptyCtx({ layout: "start" }), model);
   if (/class="card startRoom/.test(html)) throw new Error("romruter på et tomt dashbord");
-  if (!/Ingen rom er lagt inn/.test(html)) throw new Error("mangler tom-tekst for rom");
+  if (!/Kom i gang/.test(html)) throw new Error("mangler onboarding for rom");
   return html;
 });
 run("tom/edit-tilbyr-kort", () => {

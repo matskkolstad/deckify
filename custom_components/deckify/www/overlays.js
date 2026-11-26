@@ -164,14 +164,14 @@ export function calendarSheet(ctx) {
 
   const head = `
     <div class="sheethead">
-      <div class="xbtn" data-act="calmonth" data-d="-1">${ic(ICON.left)}</div>
+      <div class="xbtn" data-act="calmonth" data-d="-1" title="Forrige måned" aria-label="Forrige måned">${ic(ICON.left)}</div>
       <div class="h2" style="flex:1">${h(NB_MON[month.getMonth()][0].toUpperCase() + NB_MON[month.getMonth()].slice(1))} ${month.getFullYear()}</div>
-      <div class="xbtn" data-act="calmonth" data-d="1">${ic(ICON.right)}</div>
+      <div class="xbtn" data-act="calmonth" data-d="1" title="Neste måned" aria-label="Neste måned">${ic(ICON.right)}</div>
       <div class="btn" data-act="caltoday">I dag</div>
-      <div class="xbtn" data-act="closeoverlay">${ic(ICON.close)}</div>
+      <div class="xbtn" data-act="closeoverlay" title="Lukk" aria-label="Lukk">${ic(ICON.close)}</div>
     </div>`;
   return `<div class="scrim" data-act="closeoverlay"></div>
-    <div class="sheet full">${head}${body}</div>`;
+    <div class="sheet full" role="dialog" aria-modal="true" aria-label="Kalender" tabindex="-1">${head}${body}</div>`;
 }
 
 function sameDay(iso, d) {
@@ -276,11 +276,11 @@ export function playerSheet(ctx) {
     </div>`;
 
   return `<div class="scrim" data-act="closeoverlay"></div>
-    <div class="sheet" style="position:relative;overflow:hidden">
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="Spiller" tabindex="-1" style="position:relative;overflow:hidden">
       ${art ? `<div class="playerbg" style="background-image:url('${h(art)}')"></div>` : ""}
       <div style="position:relative;z-index:1">
         <div class="sheethead"><div style="flex:1"></div>
-          <div class="xbtn" data-act="closeoverlay">${ic(ICON.close)}</div></div>
+          <div class="xbtn" data-act="closeoverlay" title="Lukk" aria-label="Lukk">${ic(ICON.close)}</div></div>
         ${body}
       </div>
     </div>`;
@@ -411,7 +411,7 @@ export function pickerSheet(ctx, model) {
 export function confirmSheet(ctx) {
   const c = ctx.confirm;
   return `<div class="scrim" data-act="closeoverlay"></div>
-  <div class="sheet" style="width:min(420px,92vw)">
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="${h(c.title)}" tabindex="-1" style="width:min(420px,92vw)">
     <div class="confirm">
       <div class="ic">${ic(ICON.alert)}</div>
       <div class="h2">${h(c.title)}</div>
@@ -428,10 +428,10 @@ export function confirmSheet(ctx) {
 
 export function sheet(title, body, cls = "") {
   return `<div class="scrim" data-act="closeoverlay"></div>
-  <div class="sheet ${cls}">
+  <div class="sheet ${cls}" role="dialog" aria-modal="true" aria-label="${h(title)}" tabindex="-1">
     <div class="sheethead">
       <div class="h2">${h(title)}</div>
-      <div class="xbtn" data-act="closeoverlay">${ic(ICON.close)}</div>
+      <div class="xbtn" data-act="closeoverlay" title="Lukk" aria-label="Lukk">${ic(ICON.close)}</div>
     </div>
     ${body}
   </div>`;

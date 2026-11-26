@@ -67,7 +67,7 @@ export function header(ctx, model) {
     </div>
     <div class="hdrright">
       ${weather}${people}
-      <div class="rbtn" data-act="search">${ic("mdi:magnify")}</div><div class="rbtn" data-act="overlay" data-o="settings">${ic(ICON.cog)}</div>
+      <div class="rbtn" data-act="search" title="Søk" aria-label="Søk">${ic("mdi:magnify")}</div><div class="rbtn" data-act="overlay" data-o="settings" title="Innstillinger" aria-label="Innstillinger">${ic(ICON.cog)}</div>
     </div>
   </header>`;
 }
@@ -257,6 +257,23 @@ function renderHomeTile(ctx, model, id) {
   return "";
 }
 
+/** Førstegangsskjerm: et tomt dashbord skal ikke være en blindvei. */
+export function onboarding(ctx) {
+  const canFill = !!ctx.store.writable;
+  const canEdit = !!ctx.canEdit;
+  return `<div class="onboard">
+    <div class="ic">${ic("mdi:home-lightning-bolt-outline")}</div>
+    <div class="h1">Kom i gang</div>
+    <p>Dashbordet er tomt med vilje. La Deckify fylle det fra Home Assistant,
+       eller bygg din egen oversikt med akkurat de rommene og enhetene du vil.</p>
+    <div class="btns">
+      ${canFill ? `<div class="btn primary" data-act="autofill">${ic("mdi:auto-fix")}Fyll automatisk</div>` : ""}
+      ${canEdit ? `<div class="btn" data-act="editnow">${ic(ICON.pencil)}Bygg selv</div>` : ""}
+      ${!canFill && !canEdit ? `<div class="sub">En administrator må fylle dashbordet eller legge til kort.</div>` : ""}
+    </div>
+  </div>`;
+}
+
 export function homeGrid(ctx, model) {
   const ids = visibleHomeTiles(ctx, model);
   const body = gridWithSeps(ctx, ids, "home",
@@ -265,9 +282,7 @@ export function homeGrid(ctx, model) {
     ? `<div class="grid rooms">${missingTiles(ctx, model, "home", ids)}${
         addCard("Legg til enheter", "adddevices", "home")}</div>`
     : "";
-  const empty = !ids.length && !ctx.edit
-    ? `<div class="empty">${ic(ICON.plus)}Tomt dashbord — trykk Rediger for å legge til rom, kort og enheter.</div>`
-    : "";
+  const empty = !ids.length && !ctx.edit ? onboarding(ctx) : "";
   return body + add + empty;
 }
 
@@ -337,11 +352,13 @@ export function viewHomeList(ctx, model) {
     .filter((r) => r.controls.length || ctx.edit)
     .map((r) => listGroup(ctx, r, ctx.edit ? false : ctx.collapsed.has(r.id),
                           visibleRoomTiles(ctx, r))).join("");
+  const empty = !groups && !ctx.edit ? onboarding(ctx) : "";
   return `
     ${header(ctx, model)}
     ${statusRow(ctx, model)}
     ${sceneStrip(ctx, model)}
-    <div class="listcols">${groups}</div>`;
+    <div class="listcols">${groups}</div>
+    ${empty}`;
 }
 
 export function viewHomeSidebar(ctx, model) {
@@ -398,7 +415,7 @@ export function viewHomeSidebar(ctx, model) {
         <div class="hdrright">
           ${store.get("showWeather") ? weatherPill(ctx) : ""}
           ${store.get("showPeople") ? peopleHtml(ctx) : ""}
-          <div class="rbtn" data-act="search">${ic("mdi:magnify")}</div><div class="rbtn" data-act="overlay" data-o="settings">${ic(ICON.cog)}</div>
+          <div class="rbtn" data-act="search" title="Søk" aria-label="Søk">${ic("mdi:magnify")}</div><div class="rbtn" data-act="overlay" data-o="settings" title="Innstillinger" aria-label="Innstillinger">${ic(ICON.cog)}</div>
         </div>
       </header>
       ${body}
@@ -454,7 +471,7 @@ export function viewHomeFocus(ctx, model) {
   const dots = pages.map((_, k) => `<span class="dot ${k === i ? "sel" : ""}"></span>`).join("");
   return `
   <div style="position:absolute;top:var(--pad);right:var(--pad);z-index:5">
-    <div class="rbtn" data-act="search">${ic("mdi:magnify")}</div><div class="rbtn" data-act="overlay" data-o="settings">${ic(ICON.cog)}</div>
+    <div class="rbtn" data-act="search" title="Søk" aria-label="Søk">${ic("mdi:magnify")}</div><div class="rbtn" data-act="overlay" data-o="settings" title="Innstillinger" aria-label="Innstillinger">${ic(ICON.cog)}</div>
   </div>
   <div class="focuswrap">
     ${inner}
@@ -549,7 +566,7 @@ export function viewRooms(ctx, model) {
       </div>
       <div class="sbmain">
         <header style="margin-bottom:10px"><div style="flex:1"></div>
-          <div class="hdrright">${weatherPill(ctx)}<div class="rbtn" data-act="search">${ic("mdi:magnify")}</div><div class="rbtn" data-act="overlay" data-o="settings">${ic(ICON.cog)}</div></div>
+          <div class="hdrright">${weatherPill(ctx)}<div class="rbtn" data-act="search" title="Søk" aria-label="Søk">${ic("mdi:magnify")}</div><div class="rbtn" data-act="overlay" data-o="settings" title="Innstillinger" aria-label="Innstillinger">${ic(ICON.cog)}</div></div>
         </header>
         ${roomBody(ctx, model, room)}
       </div>

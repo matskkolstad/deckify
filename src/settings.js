@@ -473,6 +473,11 @@ function paneDeck(ctx, model) {
       ctx.store.perDevice ? "i denne nettleseren (eget oppsett per skjerm)"
         : ctx.store.writable ? "på tjeneren, delt mellom alle brukere og skjermer"
                              : "bare lokalt i denne nettleseren"}</span></div></div>
+  <div class="setsec">
+    <h4>Globale innstillinger</h4>
+    <p>Sensorer, regex-filtre, bekreftelsesregler og flere avanserte valg
+       ligger i integrasjonens egne innstillinger.</p>
+    <div class="btn" data-act="openintegration">${ic(ICON.cog)}Åpne integrasjonens innstillinger</div>
   </div>`;
 
   return ro ? withoutActions(body) : body;

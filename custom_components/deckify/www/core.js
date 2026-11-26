@@ -376,7 +376,7 @@ export const DEFAULTS = {
   /* Skjermsparer. SEKUNDER, ikke minutter - den gamle nøkkelen `screensaver`
      holdt minutter og kunne derfor ikke uttrykke «etter 30 sekunder».
      Delt mellom skjermene, slik at man setter den ett sted. */
-  saverSec: 30,              // 0 = av
+  saverSec: 300,             // 0 = av
   saverWeather: true,
   saverStatus: true,
   saverMedia: true,

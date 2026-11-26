@@ -58,7 +58,7 @@ røykvarsleren går er verre enn ingen skjermsparer.
 
 ![Skjermsparer](docs/skjermsparer.png)
 
-Starter etter 30 sekunder som standard; kan settes til 30 s, 1, 2, 5, 10
+Starter etter 5 minutter som standard i paneldashbordet; kan settes til 30 s, 1, 2, 5, 10
 eller 30 minutter, eller av, under *Innstillinger → Skjermsparer*. Den følger
 bakgrunnen og fargene du har valgt, og klokka driver langsomt rundt så den
 ikke brenner seg inn i et veggnettbrett som står på hele døgnet. Ett trykk,

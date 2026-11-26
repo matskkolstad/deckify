@@ -109,6 +109,9 @@ class DeckifyCard extends HTMLElement {
     this._cfgGen = 0;
     this._forecastGen = 0;
     this._svcListener = null;
+    this._popListener = null;
+    this._keyListener = null;
+    this._visListener = null;
     this._kioskT = null;
     this._kioskSb = false;
     this._hideHeaderEl = null;
@@ -165,6 +168,7 @@ class DeckifyCard extends HTMLElement {
     if (!this.isConnected) { this._booting = false; return; }
 
     this._applyServerConfig();
+    this._applyUrl();
     this._build();
     this._render();
     this._booted = true;
@@ -256,6 +260,24 @@ class DeckifyCard extends HTMLElement {
       };
       window.addEventListener("deckify-service-error", this._svcListener);
     }
+    if (!this._popListener) {
+      this._popListener = () => {
+        this._applyUrl();
+        this._st.overlay = null;
+        this._render();
+      };
+      window.addEventListener("popstate", this._popListener);
+    }
+    if (!this._keyListener) {
+      this._keyListener = (e) => this._onKey(e);
+      window.addEventListener("keydown", this._keyListener);
+    }
+    if (!this._visListener) {
+      this._visListener = () => {
+        if (!document.hidden) this._lastInput = Date.now();
+      };
+      document.addEventListener("visibilitychange", this._visListener);
+    }
   }
 
   _stopTimers() {
@@ -267,6 +289,18 @@ class DeckifyCard extends HTMLElement {
     if (this._svcListener) {
       window.removeEventListener("deckify-service-error", this._svcListener);
       this._svcListener = null;
+    }
+    if (this._popListener) {
+      window.removeEventListener("popstate", this._popListener);
+      this._popListener = null;
+    }
+    if (this._keyListener) {
+      window.removeEventListener("keydown", this._keyListener);
+      this._keyListener = null;
+    }
+    if (this._visListener) {
+      document.removeEventListener("visibilitychange", this._visListener);
+      this._visListener = null;
     }
     clearTimeout(this._cfgT); this._cfgT = null;
     clearTimeout(this._kioskT); this._kioskT = null;
@@ -458,7 +492,13 @@ class DeckifyCard extends HTMLElement {
       this._cache.ov = oh;
       if (!wasOpen && oh) {
         const q = this._ovEl.querySelector("#pickq");
-        if (q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
+        const target = q || this._ovEl.querySelector('[data-act="closeoverlay"]')
+          || this._ovEl.querySelector("input, [tabindex]");
+        if (target) {
+          if (!target.hasAttribute("tabindex") && !q) target.setAttribute("tabindex", "0");
+          try { target.focus({ preventScroll: true }); } catch (e) { target.focus(); }
+        }
+        if (q) q.setSelectionRange(q.value.length, q.value.length);
       }
     }
 
@@ -473,6 +513,18 @@ class DeckifyCard extends HTMLElement {
     /* Skjermspareren skal følge temaet, ikke være en nesten svart plate:
        samme gradient som dashbordet, bare uten innholdet oppå. */
     if (this._st.saverOn && this._cache.bg) this._saverEl.style.background = this._cache.bg;
+    this._a11y();
+    this._syncUrl(false);
+  }
+
+  /** Gjør klikkbare data-act-elementer tilgjengelige for tastatur. */
+  _a11y() {
+    if (!this._root) return;
+    for (const el of this._root.querySelectorAll("[data-act]")) {
+      if (["INPUT", "TEXTAREA", "BUTTON", "A", "SELECT"].includes(el.tagName)) continue;
+      if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "0");
+      if (!el.hasAttribute("role")) el.setAttribute("role", "button");
+    }
   }
 
   _viewHtml(ctx, model) {
@@ -544,12 +596,13 @@ class DeckifyCard extends HTMLElement {
   /* ---------------------------------------------------------------- tick */
 
   _onTick() {
+    if (document.hidden) return;
     const sec = this._store?.get("showSeconds");
     /* Sekunder. `saverSec` erstattet den gamle minutt-nøkkelen nettopp fordi
        30 sekunder ikke kunne uttrykkes i hele minutter. */
     const saverSec = this._store?.get("saverSec") || 0;
-    if (saverSec && !this._st.saverOn && !this._st.edit && !this._st.overlay &&
-        Date.now() - this._lastInput > saverSec * 1000) {
+    if (saverSec && this._isPanel && !this._st.saverOn && !this._st.edit &&
+        !this._st.overlay && Date.now() - this._lastInput > saverSec * 1000) {
       this._st.saverOn = true;
     }
     /* klokka og spillerposisjon må oppdateres selv uten tilstandsendring */
@@ -715,6 +768,42 @@ class DeckifyCard extends HTMLElement {
 
   /* ------------------------------------------------------------ hendelser */
 
+  _onKey(e) {
+    if (e.key === "Escape" && this._st.overlay) {
+      this._st.overlay = null;
+      this._st.pickerQ = "";
+      this._st.confirm = null;
+      this._render();
+      return;
+    }
+    if (e.key === "Enter" || e.key === " ") {
+      const active = this.shadowRoot.activeElement;
+      if (active?.dataset?.act &&
+          !["INPUT", "TEXTAREA", "BUTTON", "A", "SELECT"].includes(active.tagName)) {
+        e.preventDefault();
+        active.click();
+        return;
+      }
+    }
+    if (e.key !== "Tab" || !this._st.overlay) return;
+    const nodes = [...this._ovEl.querySelectorAll(
+      '[data-act],input,textarea,button,select,[tabindex="0"]'
+    )].filter((el) => !el.disabled && el.getClientRects().length);
+    if (!nodes.length) return;
+    const active = this.shadowRoot.activeElement;
+    const first = nodes[0], last = nodes[nodes.length - 1];
+    if (!active || !this._ovEl.contains(active)) {
+      e.preventDefault();
+      first.focus();
+    } else if (e.shiftKey && active === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && active === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+
   _onInput(e) {
     const t = e.target;
     if (!t) return;
@@ -755,9 +844,72 @@ class DeckifyCard extends HTMLElement {
     }
   }
 
+  /* --------------------------------------------------------------- ruting */
+
+  /** Hash-URL for gjeldende visning. Hash brukes fordi panelet allerede eier
+      stien sin; vi vil ikke kollidere med Home Assistants egen ruter. */
+  _urlForState() {
+    const v = this._st.view;
+    if (v === "home") {
+      const layout = this._store.get("layout");
+      if (layout === "sidebar" && this._st.sidebarSel &&
+          this._st.sidebarSel !== "overview")
+        return "#/sidebar/" + encodeURIComponent(this._st.sidebarSel);
+      if (layout === "focus")
+        return "#/focus/" + encodeURIComponent(String(this._st.focusPage || 0));
+      return "";
+    }
+    if (v === "rooms")
+      return "#/rooms" + (this._st.roomSel
+        ? "/" + encodeURIComponent(this._st.roomSel) : "");
+    if (v.startsWith("page:"))
+      return "#/page/" + encodeURIComponent(v.slice(5));
+    return "#/" + encodeURIComponent(v);
+  }
+
+  /** Les hash-URLen og sett visning/rom før første render. */
+  _applyUrl() {
+    const raw = (location.hash || "").replace(/^#\/?/, "");
+    const parts = raw.split("/").filter(Boolean).map((p) => {
+      try { return decodeURIComponent(p); } catch (e) { return p; }
+    });
+    const route = parts[0] || "home";
+    if (route === "rooms") {
+      this._st.view = "rooms";
+      this._st.roomSel = parts[1] || null;
+    } else if (route === "page" && parts[1]) {
+      this._st.view = "page:" + parts[1];
+    } else if (route === "sidebar") {
+      this._st.view = "home";
+      this._st.sidebarSel = parts[1] || "overview";
+    } else if (route === "focus") {
+      this._st.view = "home";
+      this._st.focusPage = clamp(Number(parts[1]) || 0, 0, 999);
+    } else if (["home", "media", "security", "attention", "energy", "house"].includes(route)) {
+      this._st.view = route;
+    } else if (route === "start") {
+      this._st.view = "home";
+    } else {
+      this._st.view = "home";
+    }
+    this._st.edit = false;
+  }
+
+  _syncUrl(push = false) {
+    if (!this._store) return;
+    const hash = this._urlForState();
+    if ((location.hash || "") === hash) return;
+    try {
+      const url = hash || (location.pathname + location.search);
+      if (push) history.pushState(null, "", url);
+      else history.replaceState(null, "", url);
+    } catch (e) {}
+  }
+
   _focusPage(d) {
     const n = (this._model?.rooms.length || 0) + 1;
     this._st.focusPage = clamp((this._st.focusPage || 0) + d, 0, n - 1);
+    this._syncUrl(true);
     this._render();
   }
 
@@ -1025,6 +1177,7 @@ class DeckifyCard extends HTMLElement {
       this._st.view = t;
     }
     this._st.overlay = null;
+    this._syncUrl(true);
     this._render();
   }
 
@@ -1053,21 +1206,24 @@ class DeckifyCard extends HTMLElement {
     switch (a) {
       /* --- navigasjon --- */
       case "nav":
-        this._st.view = d.v; this._st.edit = false; this._render();
+        this._st.view = d.v; this._st.edit = false;
+        this._syncUrl(true); this._render();
         if (d.v === "energy") {
           if (this._cfg.powerSensor) this._loadHistory(this._cfg.powerSensor);
           this._loadPriceHistory();
         }
         break;
       case "room":
-        this._st.view = "rooms"; this._st.roomSel = d.r; this._render(); break;
+        this._st.view = "rooms"; this._st.roomSel = d.r;
+        this._syncUrl(true); this._render(); break;
       case "selroom":
-        this._st.roomSel = d.r; this._render(); break;
+        this._st.roomSel = d.r; this._syncUrl(true); this._render(); break;
       case "sbnav":
-        this._st.sidebarSel = d.r; this._render(); break;
+        this._st.sidebarSel = d.r; this._syncUrl(true); this._render(); break;
       case "focusroom": {
         const i = this._model.rooms.findIndex((r) => r.id === d.r);
-        this._st.focusPage = i + 1; this._render(); break;
+        this._st.focusPage = i + 1;
+        this._syncUrl(true); this._render(); break;
       }
       case "focuspage": this._focusPage(Number(d.d)); break;
       case "collapse": {
@@ -1323,7 +1479,8 @@ class DeckifyCard extends HTMLElement {
       }
       case "searchroom":
         this._st.overlay = null; this._st.view = "rooms";
-        this._st.roomSel = d.r; this._cache.body = null; this._render(); break;
+        this._st.roomSel = d.r; this._cache.body = null;
+        this._syncUrl(true); this._render(); break;
       case "resetorder": {
         const scopes = this._visibleScopes();
         const o = { ...this._store.data.order };
@@ -1519,6 +1676,26 @@ class DeckifyCard extends HTMLElement {
         this._render();
         this._toast("Entiteten er tatt inn igjen"); break;
       }
+      case "openintegration":
+        this._navigate("/config/integrations/integration/deckify");
+        break;
+      case "autofill": {
+        if (!this._store.writable) {
+          this._toast("Bare administratorer kan fylle dashbordet");
+          break;
+        }
+        await this._store.patchServer({ auto_fill: true });
+        this._applyServerConfig();
+        this._st.view = "home";
+        this._st.edit = false;
+        this._syncUrl(true);
+        this._cache.body = null; this._cache.dock = null;
+        this._render();
+        this._toast(this._model?.rooms.length
+          ? "Dashbordet er fylt automatisk"
+          : "Fant ingen rom i Home Assistant — legg til rom først");
+        break;
+      }
 
       /* --- innstillinger --- */
       case "setsec": this._st.setSec = d.s; this._render(); break;
@@ -1579,7 +1756,8 @@ class DeckifyCard extends HTMLElement {
           this._toast("Bare administratorer kan redigere egne sider");
           break;
         }
-        this._st.view = "page:" + d.p; this._st.overlay = null; this._st.edit = true; this._render(); break;
+        this._st.view = "page:" + d.p; this._st.overlay = null; this._st.edit = true;
+        this._syncUrl(true); this._render(); break;
       case "reset": {
         if (!this._store.writable && !this._store.perDevice) {
           this._toast("Bare administratorer kan nullstille layouten");

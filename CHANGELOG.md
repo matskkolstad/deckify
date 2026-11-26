@@ -6,6 +6,17 @@ Alle merkbare endringer i Deckify. Formatet følger
 
 ## [Unreleased]
 
+### Lagt til
+
+- **Førstegangsskjerm.** Et tomt dashbord viser nå «Kom i gang» med valget
+  mellom å fylle det automatisk fra Home Assistant eller bygge det selv.
+- **Dype lenker og historikk.** Visning, rom, egne sider og fokus-side legges
+  i hash-URL-en. Refresh beholder visningen, og nettleserens tilbakeknapp går
+  til forrige Deckify-visning.
+- Tastaturnavigasjon: `Escape` lukker ark, `Tab` holdes inne i åpne ark, og
+  klikkbare flater kan aktiveres med Enter eller mellomrom.
+- Snarvei fra dashbordinnstillingene til integrasjonens globale innstillinger.
+
 ### Endret
 
 - **«Nullstill» er delt i to.** «Nullstill layout» nullstiller bare
@@ -16,6 +27,11 @@ Alle merkbare endringer i Deckify. Formatet følger
 - Informasjonskort for sensorer, binærsensorer, personer, vær, tall, valg og
   tekst åpner detaljpanelet ved vanlig trykk. Knapper bruker `press` i stedet
   for en av/på-tjeneste som ikke finnes.
+- Skjermspareren starter etter 5 minutter som standard, og bare i
+  paneldashbordet — ikke i et vanlig Lovelace-kort. Den vekkes ikke mens fanen
+  er skjult.
+- Høydemål bruker `100dvh` der nettleseren støtter det, slik at bunnmenyen
+  ikke forsvinner bak iOS-verktøylinjen.
 
 ### Rettet
 
