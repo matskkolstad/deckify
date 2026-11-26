@@ -418,7 +418,7 @@ class DeckifyCard extends HTMLElement {
       pickerQ: this._st.pickerQ, pickerDomain: this._st.pickerDomain,
       scopeIds: this._st.scopeIds,
       confirm: this._st.confirm, isDefaultPanel: this._isDefaultPanel(),
-      cardCfg: this._st.cardCfgT, dashboards: this._dashboards,
+      cardCfg: this._st.cardCfgT,
       media: this._media, browse: this._browse, editScope: this._currentScope(),
       searchQ: this._st.searchQ, attention: this._attention(model),
       atvSel: this._st.atvSel,
@@ -2484,6 +2484,9 @@ function hexToRgb(hex) {
   return [parseInt(s.slice(0, 2), 16), parseInt(s.slice(2, 4), 16), parseInt(s.slice(4, 6), 16)];
 }
 
+if (!customElements.get("deckify-card-inner")) {
+  customElements.define("deckify-card-inner", DeckifyCard);
+}
 if (!customElements.get("deckify-card")) {
   customElements.define("deckify-card", DeckifyCard);
 }
@@ -2551,3 +2554,5 @@ class DeckifyPanel extends HTMLElement {
 if (!customElements.get("deckify-panel")) {
   customElements.define("deckify-panel", DeckifyPanel);
 }
+
+export { DeckifyCard, DeckifyPanel };

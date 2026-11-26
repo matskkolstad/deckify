@@ -32,6 +32,11 @@ Alle merkbare endringer i Deckify. Formatet følger
   er skjult.
 - Høydemål bruker `100dvh` der nettleseren støtter det, slik at bunnmenyen
   ikke forsvinner bak iOS-verktøylinjen.
+- Enhetsvelgerens store, sorterte liste bygges først når den faktisk trengs.
+  Vanlige tilstandsoppdateringer slipper dermed å sortere alle entiteter.
+- `custom:deckify-card` registreres nå av en liten `register.js`. Den tunge
+  dashbordmodulen lastes først når kortet faktisk brukes, ikke på hver
+  Home Assistant-side for alle brukere.
 
 ### Rettet
 

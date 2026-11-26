@@ -49,6 +49,9 @@ type DeckifyConfigEntry = ConfigEntry
 #: Modul-URL med versjon, så nettleseren ikke serverer gammel kode etter
 #: en oppdatering. Hele poenget med `?v=` er cache-busting — se README.
 MODULE_URL = f"{STATIC_URL}/deckify.js?v={VERSION}"
+#: Liten registreringsmodul for `custom:deckify-card`. Den laster den tunge
+#: dashbordmodulen først når kortet faktisk brukes.
+CARD_URL = f"{STATIC_URL}/register.js?v={VERSION}"
 
 DATA_STORE = f"{DOMAIN}_store"
 DATA_SETUP = f"{DOMAIN}_setup_done"
@@ -79,8 +82,9 @@ async def _async_setup_shared(hass: HomeAssistant) -> DeckifyStore:
     )
 
     # Gjør `custom:deckify-card` tilgjengelig i alle Lovelace-dashbord uten
-    # at brukeren må legge inn en ressurs for hånd.
-    frontend.add_extra_js_url(hass, MODULE_URL)
+    # at brukeren må legge inn en ressurs for hånd. register.js er bevisst
+    # liten; selve dashbordmodulen lastes først når kortet brukes.
+    frontend.add_extra_js_url(hass, CARD_URL)
 
     async_register_websocket_api(hass)
     _LOGGER.debug("Deckify %s klar — modul på %s", VERSION, MODULE_URL)

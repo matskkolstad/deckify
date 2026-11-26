@@ -1293,33 +1293,50 @@ export function buildModel(hass, cfg, store) {
   const lightsOn = allLights.filter((e) => hass.states[e]?.state === "on");
 
   /* Alt brukeren kan legge til manuelt — mye bredere enn `controls`.
-     Diagnose-/konfig-entiteter og skjulte er fortsatt ute. */
-  const addable = [];
-  for (const eid of Object.keys(hass.states)) {
-    const reg = ents[eid];
-    const dd = domainOf(eid);
-    if (!ADDABLE_DOMAINS.has(dd)) continue;
-    if (cfg.exclude.has(eid)) continue;
-    if (cfg.excludeRe && cfg.excludeRe.test(eid)) continue;
-    if (reg) {
-      if (reg.hidden || reg.disabled_by) continue;
-      if (reg.entity_category && !cfg.allowDiagnostic) continue;
-      if (cfg.excludePlatforms.has(reg.platform)) continue;
-    }
-    const aid = assignOf(eid);
-    addable.push({ eid, domain: dd, area: areas[aid]?.name || null, areaId: aid || null });
-  }
-  addable.sort((a, b) =>
-    (a.area || "ÿ").localeCompare(b.area || "ÿ", "nb") ||
-    a.domain.localeCompare(b.domain) ||
-    nameOf(hass, cfg, a.eid).localeCompare(nameOf(hass, cfg, b.eid), "nb"));
+     Diagnose-/konfig-entiteter og skjulte er fortsatt ute.
 
-  return {
-    rooms, looseScenes, addable, securityAll,
+     Listen sorteres med nameOf() og er derfor den dyreste delen av modellen.
+     Den bygges først når enhetsvelgeren, søket eller tilsynssiden faktisk
+     spør etter den. Hver render skal ikke betale for den. */
+  const buildAddable = () => {
+    const addable = [];
+    for (const eid of Object.keys(hass.states)) {
+      const reg = ents[eid];
+      const dd = domainOf(eid);
+      if (!ADDABLE_DOMAINS.has(dd)) continue;
+      if (cfg.exclude.has(eid)) continue;
+      if (cfg.excludeRe && cfg.excludeRe.test(eid)) continue;
+      if (reg) {
+        if (reg.hidden || reg.disabled_by) continue;
+        if (reg.entity_category && !cfg.allowDiagnostic) continue;
+        if (cfg.excludePlatforms.has(reg.platform)) continue;
+      }
+      const aid = assignOf(eid);
+      addable.push({ eid, domain: dd, area: areas[aid]?.name || null, areaId: aid || null });
+    }
+    addable.sort((a, b) =>
+      (a.area || "ÿ").localeCompare(b.area || "ÿ", "nb") ||
+      a.domain.localeCompare(b.domain) ||
+      nameOf(hass, cfg, a.eid).localeCompare(nameOf(hass, cfg, b.eid), "nb"));
+    return addable;
+  };
+  let addableCache = null;
+
+  const model = {
+    rooms, looseScenes, securityAll,
     allLights, lightsOn,
     roomsWithLightOn: rooms.filter((r) => r.lightsOn > 0).length,
     warmth: allLights.length ? lightsOn.length / allLights.length : 0,
   };
+  Object.defineProperty(model, "addable", {
+    enumerable: true,
+    configurable: true,
+    get() {
+      if (!addableCache) addableCache = buildAddable();
+      return addableCache;
+    },
+  });
+  return model;
 }
 
 export function pickSensor(hass, ids, deviceClass) {
