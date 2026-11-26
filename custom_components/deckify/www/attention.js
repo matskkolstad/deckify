@@ -5,8 +5,8 @@
 import {
   h, ICON, isDead, domainOf, nameOf, fullNameOf, deviceNameOf, shortName,
   entityIcon, fmtNum,
-} from "./core.js?v=2.3.0";
-import { ic } from "./controls.js?v=2.3.0";
+} from "./core.js?v=2.4.0";
+import { ic } from "./controls.js?v=2.4.0";
 
 const num = (hass, eid) => {
   const st = eid ? hass.states[eid] : null;
@@ -123,7 +123,7 @@ export function collectIssues(ctx, model) {
   /* --- enheter som har falt ut ----------------------------------------
      Bare EKTE enheter: en entitet uten device_id er som regel en mal- eller
      hjelpesensor (Nordpool, Elvia, statistikk), og at den står `unavailable`
-     i noen minutter er støy, ikke noe Mats skal se på. De telles opp i én
+     i noen minutter er støy, ikke noe brukeren skal se på. De telles opp i én
      samlerad i stedet for å fylle siden med 50 rader. */
   const deadDev = new Map();
   let deadHelpers = 0;

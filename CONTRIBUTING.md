@@ -38,10 +38,13 @@ EOF
 ## Sjekkene, og hvorfor de finnes
 
 ```bash
-python3 tools/bump.py 2.3.1      # versjon i manifest, const.py, DK_VER og ALLE ?v=
+python3 tools/bump.py 2.4.0      # versjon i manifest, const.py, DK_VER og ALLE ?v=
 python3 tools/check_imports.py   # manglende importer, ukjente this._metoder, await i ikke-async
-./tools/mirror.sh                # src/*.js -> tools/.chk/*.mjs
-node tools/.chk/render.mjs       # rendrer alle visninger mot et ekte HA-øyeblikksbilde
+python3 -m unittest discover -s tests -p "test_*.py"  # lagring, reset og merge
+bash tools/mirror.sh             # src/*.js -> tools/.chk/*.mjs
+cp tests/fixtures/snapshot.json tools/.chk/snapshot.json
+node --test tests/*.test.mjs     # sikkerhet, reset, filtre, ruting, onboarding
+node tools/.chk/render.mjs       # rendrer alle visninger mot et syntetisk HA-øyeblikksbilde
 python3 tools/build.py           # src/ -> custom_components/deckify/www/
 ```
 
@@ -64,9 +67,11 @@ Fire feilklasser kommer aldri til syne i nettleseren som noe annet enn at
 
 ## Render-testen trenger et øyeblikksbilde
 
-`tools/.chk/render.mjs` rendrer hver eneste visning mot et dump av et ekte
-Home Assistant og flagger output som inneholder `undefined`,
-`[object Object]` eller `NaN%`. Lag ditt eget dump:
+`tools/.chk/render.mjs` rendrer hver eneste visning mot et HA-øyeblikksbilde og
+flagger output som inneholder `undefined`, `[object Object]` eller `NaN%`.
+CI bruker det syntetiske bildet i `tests/fixtures/snapshot.json`, slik at
+testen kan kjøres uten private data. Vil du teste mot ditt eget hus, lag et
+eget dump:
 
 ```bash
 export HASS_URL=http://homeassistant.local:8123
@@ -74,8 +79,9 @@ export HASS_TOKEN=<long-lived access token>
 python3 tools/dump_snapshot.py        # -> tools/.chk/snapshot.json
 ```
 
-Filen er **gitignorert med vilje** — den inneholder alle entitetsnavnene,
-tilstandene og posisjonen til hjemmet ditt. Ikke commit den.
+Det personlige bildet er **gitignorert med vilje** — det inneholder alle
+entitetsnavnene, tilstandene og posisjonen til hjemmet ditt. Ikke commit det.
+Det syntetiske bildet i `tests/fixtures/` er trygt å committe.
 
 ## Stil
 

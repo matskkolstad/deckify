@@ -33,13 +33,21 @@ jobs:
         run: for f in src/*.js; do node --check "$f"; done
       - name: Importsjekk og await-sjekk
         run: python3 tools/check_imports.py
+      - name: Python-enhetstester
+        run: python3 -m unittest discover -s tests -p "test_*.py"
+      - name: Mirror, Node-tester og render-test
+        run: |
+          bash tools/mirror.sh
+          cp tests/fixtures/snapshot.json tools/.chk/snapshot.json
+          node --test tests/*.test.mjs
+          node tools/.chk/render.mjs
       - name: dist er i takt med src
         run: python3 tools/build.py && git diff --exit-code custom_components/deckify/www
       - name: Ingen private verdier i arkivet
         run: |
-          # deploy-verten og HA-øyeblikksbildet skal aldri havne i git
+          # deploy-verten og det personlige HA-øyeblikksbildet skal aldri i git
           ! git ls-files | grep -q 'tools/deploy.env'
-          ! git ls-files | grep -q 'snapshot.json'
+          ! git ls-files | grep -q 'tools/.chk/snapshot.json'
           ! git grep -nE '(hassio@|root@)[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' -- . ':!*.md'
       - name: Bildene README peker på finnes
         run: |

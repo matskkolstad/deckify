@@ -4,14 +4,14 @@
 import {
   h, ICON, WEATHER_ICON, WEATHER_TEXT, fmtNum, isDead, domainOf, nameOf,
   shortName, clamp,
-} from "./core.js?v=2.3.0";
+} from "./core.js?v=2.4.0";
 import {
   roomTile, deviceTile, deviceBig, mediaTile, securityTile, securityAlerts,
   climateTile, powerTile, sceneChip, listGroup, listRow,
   stateText, supportsBig, ic, isCardOn, anyTile, cardWrap,
-} from "./controls.js?v=2.3.0";
-import { weatherIcon, weatherText } from "./weather.js?v=2.3.0";
-import { quickRow, HOME_CHIPS, roomChipScope } from "./quick.js?v=2.3.0";
+} from "./controls.js?v=2.4.0";
+import { weatherIcon, weatherText } from "./weather.js?v=2.4.0";
+import { quickRow, HOME_CHIPS, roomChipScope } from "./quick.js?v=2.4.0";
 
 const NB_DAYS = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
 const NB_MON = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];
@@ -123,7 +123,7 @@ export function visibleScenes(ctx, model, scope = "scenes") {
   if (saved && saved.length) {
     /* Lagret rekkefølge er fasiten. Men scener som har dukket opp SIDEN
        sist legges til på slutten — ellers blir stripa stille utdatert i det
-       øyeblikket Mats lager eller døper om en scene i Hue-appen. Skjulte
+       øyeblikket du lager eller døper om en scene i Hue-appen. Skjulte
        scener filtreres bort nederst, så noe som er fjernet med − blir borte. */
     ids = saved.filter((e) => all.includes(e));
     if (ctx.cfg.scenesAuto && ctx.cfg.autoFill) {

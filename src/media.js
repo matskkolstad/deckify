@@ -2,16 +2,16 @@
  * Høyttalergruppering, per-medlem volum og en generisk medieutforsker.
  *
  * Utforskeren bruker HAs `media_player/browse_media` + `media_player.play_media`.
- * Det betyr at den viser Sonos-favoritter og Radio Browser i dag, og hele
+ * Det betyr at den viser mediefavoritter og Radio Browser i dag, og hele
  * Music Assistant-biblioteket automatisk den dagen MA-integrasjonen kobles
  * til — uten at kortet må endres.
  */
 import {
   h, ICON, clamp, domainOf, nameOf, shortName, isDead, fmtNum, mmss, areaIdOf,
-} from "./core.js?v=2.3.0";
-import { ic, mediaPos, stateText } from "./controls.js?v=2.3.0";
-import { sheet } from "./overlays.js?v=2.3.0";
-import { appleTVs } from "./appletv.js?v=2.3.0";
+} from "./core.js?v=2.4.0";
+import { ic, mediaPos, stateText } from "./controls.js?v=2.4.0";
+import { sheet } from "./overlays.js?v=2.4.0";
+import { appleTVs } from "./appletv.js?v=2.4.0";
 
 /* ------------------------------------------------------- grupper/spillere */
 

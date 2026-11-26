@@ -6,9 +6,9 @@
 import {
   h, ICON, clamp, domainOf, nameOf, shortName, isDead, isOn, fmtNum, mmss, relativeTime,
   lightColor, LIGHT_SWATCHES, kelvinToRgb, WEATHER_ICON,
-} from "./core.js?v=2.3.0";
-import { ic, stateText, isCardOn, mediaPos } from "./controls.js?v=2.3.0";
-import { sheet } from "./overlays.js?v=2.3.0";
+} from "./core.js?v=2.4.0";
+import { ic, stateText, isCardOn, mediaPos } from "./controls.js?v=2.4.0";
+import { sheet } from "./overlays.js?v=2.4.0";
 
 const HVAC_LABEL = { heat: "Varme", cool: "Kjøling", auto: "Auto", heat_cool: "Auto",
                      dry: "Tørke", fan_only: "Vifte", off: "Av" };

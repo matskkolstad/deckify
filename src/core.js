@@ -1,9 +1,9 @@
 /* Deckify — core.js
  * Modell, hjelpefunksjoner, lagring og paletter.
- * Bygget for Mats' HA i Oslo. Ingen HACS-avhengighet.
+ * Bygget for Home Assistant. Ingen HACS-avhengighet.
  */
 
-export const DK_VER = "2.3.0";
+export const DK_VER = "2.4.0";
 
 /* Basis-URL for modulene. Integrasjonen serverer dem fra /deckify_files/,
    men kortet skal også fungere hvis noen legger filene et annet sted — så
@@ -952,7 +952,7 @@ export function autoMachines(hass, cfg) {
  *
  * Poenget er at NULL sensorer, rom eller scener er hardkodet: står et felt
  * tomt, finner vi det ut fra HAs eget register hver gang kortet starter.
- * Døper Mats om Hue-scenene sine, følger dashbordet etter av seg selv.
+ * Døper du om Hue-scenene dine, følger dashbordet etter av seg selv.
  */
 export function resolveConfig(hass, server, yaml = {}) {
   const srv = server || {};

@@ -4,7 +4,7 @@ Alle merkbare endringer i Deckify. Formatet følger
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), og versjonene
 [semantisk versjonering](https://semver.org/lang/no/).
 
-## [Unreleased]
+## [2.4.0] - 2026-11-26
 
 ### Lagt til
 
@@ -16,6 +16,9 @@ Alle merkbare endringer i Deckify. Formatet følger
 - Tastaturnavigasjon: `Escape` lukker ark, `Tab` holdes inne i åpne ark, og
   klikkbare flater kan aktiveres med Enter eller mellomrom.
 - Snarvei fra dashbordinnstillingene til integrasjonens globale innstillinger.
+- `custom:deckify-card` kan peke på et bestemt Deckify-dashbord med
+  `dashboard: <url-sti>` i kortets YAML.
+- CI kjører nå Node-tester og render-testen med et syntetisk HA-øyeblikksbilde.
 
 ### Endret
 
@@ -61,6 +64,8 @@ Alle merkbare endringer i Deckify. Formatet følger
 - Feilede tjenestekall gir en synlig melding i stedet for bare en stille
   konsollfeil. En forbigående config-feil sletter ikke lenger et lastet
   oppsett.
+- README forklarer `dashboard: <url-sti>` for Lovelace-kortet i stedet for å
+  love at samme URL-sti alltid virker. Personlige kommentarer er ryddet.
 
 ## [2.3.0]
 

@@ -4,9 +4,9 @@
  */
 import {
   h, ICON, CARD_COLORS, ACCENT_COLORS, BACKGROUNDS, bgCss, nameOf, shortName,
-} from "./core.js?v=2.3.0";
-import { ic } from "./controls.js?v=2.3.0";
-import { SAVER_DELAYS } from "./saver.js?v=2.3.0";
+} from "./core.js?v=2.4.0";
+import { ic } from "./controls.js?v=2.4.0";
+import { SAVER_DELAYS } from "./saver.js?v=2.4.0";
 
 const LAYOUTS = [
   { id: "start", name: "Startskjerm", desc: "Stor klokke, vær og ett informativt kvadrat per rom. Best som førsteskjerm.", prev: "start" },

@@ -6,7 +6,7 @@ import {
   lightColor, LIGHT_SWATCHES, CT_STOPS, kelvinToRgb, fmtNum, mmss, WEATHER_ICON,
   BINARY_ICON, SENSOR_ICON, fullNameOf, CARD_SIZES, relTime, areaIdOf,
   sceneName as coreSceneName,
-} from "./core.js?v=2.3.0";
+} from "./core.js?v=2.4.0";
 
 const ic = (name, cls = "") => `<ha-icon class="${cls}" icon="${h(name)}"></ha-icon>`;
 

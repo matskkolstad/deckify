@@ -1,6 +1,6 @@
 /* Deckify — styles.js  (alt visuelt uttrykk) */
 
-import { BASE } from "./core.js?v=2.3.0";
+import { BASE } from "./core.js?v=2.4.0";
 
 export const CSS = `
 @font-face{font-family:'HDFigtree';font-style:normal;font-weight:300 800;font-display:swap;
@@ -38,7 +38,7 @@ export const CSS = `
 /* HA setter størrelsen på <ha-svg-icon> INNE i <ha-icon>, ikke på ha-icon
    selv. Verten blir derfor så høy som linjehøyden (f.eks. 25.2 px rundt et
    22 px ikon), og glyfen havner et par piksler over midten i hver eneste
-   sirkel og brikke. Det er nøyaktig det Mats så som «ikoner er ikke
+   sirkel og brikke. Det er nøyaktig det brukeren så som «ikoner er ikke
    midtstilt». Her bindes verten til samme mål som ikonet. */
 ha-icon{display:inline-flex;align-items:center;justify-content:center;
   width:var(--mdc-icon-size,24px);height:var(--mdc-icon-size,24px);
@@ -770,7 +770,7 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
 /* ===================== ENHETSVELGER (ny) ====================== */
 /* Toppen er KLEBRIG og lå med hardkodet mørk farge. I et lyst tema ble den
    en diger mørk kloss oppå arket, og domenebrikkene (lys-på-lys) forsvant i
-   den — det var dette Mats så som «søkefeltet blir altfor stort». Fargen må
+   den - det var dette brukeren så som «søkefeltet blir altfor stort». Fargen må
    følge arket, og rekka med domener må rulle sideveis i stedet for å brekke
    ned i fem rader på en telefon. */
 .pickhead{position:sticky;top:-2px;z-index:3;background:var(--sheet-bg);

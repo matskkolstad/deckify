@@ -9,9 +9,9 @@
 import {
   h, ICON, CARD_SIZES, INFO_MODES, CARD_ACTIONS, CARD_COLORS, DEFAULT_CARD,
   domainOf, nameOf, fullNameOf, entityIcon,
-} from "./core.js?v=2.3.0";
-import { ic } from "./controls.js?v=2.3.0";
-import { sheet } from "./overlays.js?v=2.3.0";
+} from "./core.js?v=2.4.0";
+import { ic } from "./controls.js?v=2.4.0";
+import { sheet } from "./overlays.js?v=2.4.0";
 
 /** Entitets-id-en et kort-id peker på, hvis noen. */
 export function cardEntity(id) {

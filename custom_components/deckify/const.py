@@ -5,7 +5,7 @@ from __future__ import annotations
 DOMAIN = "deckify"
 
 # Må følge manifest.json — brukes til cache-busting av frontend-modulene.
-VERSION = "2.3.0"
+VERSION = "2.4.0"
 
 # URL-en de statiske frontend-filene serveres på.
 STATIC_URL = f"/{DOMAIN}_files"

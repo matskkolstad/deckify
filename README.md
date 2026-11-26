@@ -118,10 +118,12 @@ Kortet kan også brukes i et hvilket som helst dashbord:
 
 ```yaml
 type: custom:deckify-card
+dashboard: deckify
 ```
 
-Da leses oppsettet fra Deckify-dashbordet med samme URL-sti hvis det finnes;
-ellers kjører kortet på standardverdier og lagrer bare lokalt.
+`dashboard` er URL-stien til Deckify-dashbordet du vil bruke, uten skråstrek.
+Da leses rom, sensorer, kort og rekkefølge fra det dashbordet. Uten
+`dashboard` kjører kortet på standardverdier og lagrer bare lokalt.
 
 ## Utvikling
 
@@ -129,10 +131,13 @@ Ingen byggekjede — `src/` er rene ES-moduler, og `tools/build.py` kopierer
 dem til `custom_components/deckify/www/`.
 
 ```bash
-python3 tools/bump.py 2.3.1     # versjon i manifest, const.py, DK_VER og alle ?v=
+python3 tools/bump.py 2.4.0     # versjon i manifest, const.py, DK_VER og alle ?v=
 python3 tools/check_imports.py  # manglende importer, ukjente this._metoder, await i ikke-async
-./tools/mirror.sh               # speil src/ til tools/.chk/*.mjs
-node tools/.chk/render.mjs      # rendrer alle visninger mot et ekte HA-øyeblikksbilde
+python3 -m unittest discover -s tests -p "test_*.py"  # lagring, reset og merge
+bash tools/mirror.sh            # speil src/ til tools/.chk/*.mjs
+cp tests/fixtures/snapshot.json tools/.chk/snapshot.json
+node --test tests/*.test.mjs    # sikkerhet, reset, filtre, ruting og onboarding
+node tools/.chk/render.mjs      # rendrer alle visninger
 python3 tools/build.py          # src/ -> custom_components/deckify/www/
 ./tools/deploy.sh --restart     # last opp til HA og start på nytt
 ```
@@ -151,9 +156,10 @@ DECKIFY_HOST=hassio@homeassistant.local
 DECKIFY_KEY=$HOME/.ssh/id_ed25519
 ```
 
-Render-testen trenger et øyeblikksbilde av et ekte Home Assistant
-(`tools/dump_snapshot.py`). Den filen er gitignorert med vilje — den
-inneholder alle entitetsnavnene og posisjonen til hjemmet ditt.
+CI bruker det syntetiske øyeblikksbildet i `tests/fixtures/snapshot.json`.
+Vil du teste mot ditt eget hus, kan du lage et personlig dump med
+`tools/dump_snapshot.py`. Den filen er gitignorert med vilje — den inneholder
+alle entitetsnavnene og posisjonen til hjemmet ditt.
 
 Mer i [CONTRIBUTING.md](CONTRIBUTING.md) og [CHANGELOG.md](CHANGELOG.md).
 
