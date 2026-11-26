@@ -124,9 +124,26 @@ test("onboarding, skjermsparer og lat enhetsliste", () => {
   assert.equal(core.DEFAULTS.saverSec, 300);
   assert.match(CSS, /100dvh/);
   assert.match(CSS, /prefers-reduced-motion/);
+  assert.match(CSS, /\.hd\.cardmode #dock\{position:absolute/);
   assert.match(views.onboarding({ store, canEdit: true, canWrite: true }), /data-act="autofill"/);
   assert.doesNotMatch(views.onboarding(
     { store: { ...store, writable: false }, canEdit: false, canWrite: false }), /data-act="autofill"/);
   assert.equal(model.addable, model.addable);
   assert.ok(model.addable.length > 0);
+});
+
+test("header bruker værreserven når enheten er nede", () => {
+  const states = {
+    ...hass.states,
+    "weather.home": { ...hass.states["weather.home"], state: "unavailable" },
+  };
+  const ctx = {
+    hass: { ...hass, states }, cfg: { ...cfg, weatherEntity: "weather.home" }, store,
+    now: new Date(), agenda: { todayCount: 0, todoPending: 0, todoOverdue: 0, todoItems: [] },
+    weather: { ok: true, state: "sunny", temperature: 11, kilde: "Open-Meteo" },
+  };
+  const html = views.header(ctx, model);
+  assert.match(html, /11/);
+  assert.match(html, /Open-Meteo/);
+  assert.doesNotMatch(html, /unavailable/);
 });

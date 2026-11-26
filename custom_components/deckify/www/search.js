@@ -5,9 +5,9 @@
 import {
   h, ICON, isOn, isDead, domainOf, nameOf, fullNameOf, shortName, entityIcon,
   DOMAIN_LABEL, fmtNum, matchScore,
-} from "./core.js?v=2.4.0";
-import { ic, stateText } from "./controls.js?v=2.4.0";
-import { sheet } from "./overlays.js?v=2.4.0";
+} from "./core.js?v=2.4.1";
+import { ic, stateText } from "./controls.js?v=2.4.1";
+import { sheet } from "./overlays.js?v=2.4.1";
 
 /** Entiteter som er verdt å søke i — samme liste som enhetsvelgeren. */
 export function searchResults(ctx, model, raw) {

@@ -4,7 +4,7 @@
  * leverandøren er nede). Da henter vi i stedet fra Open-Meteo, som er gratis
  * og ikke krever nøkkel, basert på hjemmets egne koordinater.
  */
-import { WEATHER_ICON, WEATHER_TEXT, isDead } from "./core.js?v=2.4.0";
+import { WEATHER_ICON, WEATHER_TEXT, isDead } from "./core.js?v=2.4.1";
 
 /* Open-Meteos WMO-koder oversatt til HA sine tilstandsnavn, så resten av
    kortet slipper å vite hvor dataene kom fra. */

@@ -6,9 +6,9 @@
  */
 import {
   h, ICON, clamp, domainOf, nameOf, deviceNameOf, shortName, isDead, fmtNum, relTime,
-} from "./core.js?v=2.4.0";
-import { ic, stateText } from "./controls.js?v=2.4.0";
-import { sparkline } from "./detail.js?v=2.4.0";
+} from "./core.js?v=2.4.1";
+import { ic, stateText } from "./controls.js?v=2.4.1";
+import { sparkline } from "./detail.js?v=2.4.1";
 
 const num = (ctx, eid) => {
   const st = ctx.hass.states[eid];

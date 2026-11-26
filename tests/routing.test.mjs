@@ -72,4 +72,9 @@ test("hash-ruting leser og skriver visning", () => {
   c._st.view = "media";
   c._syncUrl(true);
   assert.equal(location.hash, "#/media");
+
+  const c2 = new Card();
+  c2.setConfig({ dashboard: "deckify" });
+  assert.equal(c2._dashboard, "deckify");
+  assert.equal(c2._instance, "deckify");
 });

@@ -4,6 +4,22 @@ Alle merkbare endringer i Deckify. Formatet følger
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), og versjonene
 [semantisk versjonering](https://semver.org/lang/no/).
 
+## [2.4.1] - 2026-11-26
+
+### Rettet
+
+- Værpilla i header viser nå Open-Meteo-reserven når den valgte værenheten
+  er `unavailable`, i stedet for «–° unavailable».
+- `custom:deckify-card` holder bunnmeny, redigeringsknapp, ark og varsel
+  innenfor kortet i et vanlig Lovelace-dashbord. Tidligere lå de fast over
+  hele Home Assistant-siden.
+- «Skjul Home Assistants sidemeny» bruker nå en stil som bare lever så lenge
+  Deckify-kortet er montert. Den henger ikke lenger igjen på andre dashbord
+  etter at HA har lagret sidefeltvalget globalt.
+- Værabonnementet starter ikke mot en værenhet som er `unavailable` eller
+  mangler, og slutter dermed å fylle konsollen med gjentatte advarsler.
+- Versjonsteksten i innstillingene sier at værfallet kan bruke Open-Meteo.
+
 ## [2.4.0] - 2026-11-26
 
 ### Lagt til

@@ -4,9 +4,9 @@
  */
 import {
   h, ICON, CARD_COLORS, ACCENT_COLORS, BACKGROUNDS, bgCss, nameOf, shortName,
-} from "./core.js?v=2.4.0";
-import { ic } from "./controls.js?v=2.4.0";
-import { SAVER_DELAYS } from "./saver.js?v=2.4.0";
+} from "./core.js?v=2.4.1";
+import { ic } from "./controls.js?v=2.4.1";
+import { SAVER_DELAYS } from "./saver.js?v=2.4.1";
 
 const LAYOUTS = [
   { id: "start", name: "Startskjerm", desc: "Stor klokke, vær og ett informativt kvadrat per rom. Best som førsteskjerm.", prev: "start" },
@@ -355,7 +355,7 @@ function paneSystem(ctx, model) {
     <div class="optrow"><div class="ot"><b>Rom</b><span>${model.rooms.length} områder fra Home Assistant</span></div></div>
     <div class="optrow"><div class="ot"><b>Enheter</b><span>${nDev} styrbare enheter</span></div></div>
     <div class="optrow"><div class="ot"><b>Scener</b><span>${nSce} scener</span></div></div>
-    <div class="optrow"><div class="ot"><b>Versjon</b><span>Deckify ${h(ctx.version)} · lokal, ingen sky</span></div></div>
+    <div class="optrow"><div class="ot"><b>Versjon</b><span>Deckify ${h(ctx.version)} · lokalt, med Open-Meteo-reserve for vær</span></div></div>
   </div>
   <div class="setsec">
     <h4>Nullstill</h4>

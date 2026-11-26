@@ -9,32 +9,32 @@ import {
   DK_VER, h as hEsc, h, ICON, clamp, domainOf, isOn, isDead, nameOf, buildModel, Store,
   bgCss, bgBase, isLightBg, CARD_COLORS, ACCENT_COLORS, callSvc, toggleEntity, fireEvent, deepQuery,
   LIGHT_SWATCHES,
-} from "./core.js?v=2.4.0";
-import { cardConfigSheet, cardEntity } from "./cards.js?v=2.4.0";
-import { CSS } from "./styles.js?v=2.4.0";
+} from "./core.js?v=2.4.1";
+import { cardConfigSheet, cardEntity } from "./cards.js?v=2.4.1";
+import { CSS } from "./styles.js?v=2.4.1";
 import {
   viewHomeGrid, viewHomeList, viewHomeSidebar, viewHomeFocus, viewRooms,
   viewMedia, viewSecurity, viewCustom, dock, visibleScenes, visibleHomeTiles,
   visibleRoomTiles, header,
-} from "./views.js?v=2.4.0";
-import { saverView } from "./saver.js?v=2.4.0";
+} from "./views.js?v=2.4.1";
+import { saverView } from "./saver.js?v=2.4.1";
 import {
   weatherSheet, calendarSheet, todoSheet, playerSheet, pickerSheet, confirmSheet,
-} from "./overlays.js?v=2.4.0";
-import { settingsSheet } from "./settings.js?v=2.4.0";
-import { morph } from "./morph.js?v=2.4.0";
+} from "./overlays.js?v=2.4.1";
+import { settingsSheet } from "./settings.js?v=2.4.1";
+import { morph } from "./morph.js?v=2.4.1";
 import {
   viewMediaPage, groupSheet, browseSheet, groupable, allPlayers, currentGroups,
-} from "./media.js?v=2.4.0";
-import { detailSheet } from "./detail.js?v=2.4.0";
-import { viewEnergy, viewHouse } from "./pages.js?v=2.4.0";
-import { viewStart } from "./start.js?v=2.4.0";
-import { appleTVSheet, appleTVs, isAppleTV } from "./appletv.js?v=2.4.0";
-import { weatherData } from "./weather.js?v=2.4.0";
-import { searchSheet } from "./search.js?v=2.4.0";
-import { viewAttention, attentionCount } from "./attention.js?v=2.4.0";
-import { ic } from "./controls.js?v=2.4.0";
-import { quickIds, chipRoomOf, quickLabel } from "./quick.js?v=2.4.0";
+} from "./media.js?v=2.4.1";
+import { detailSheet } from "./detail.js?v=2.4.1";
+import { viewEnergy, viewHouse } from "./pages.js?v=2.4.1";
+import { viewStart } from "./start.js?v=2.4.1";
+import { appleTVSheet, appleTVs, isAppleTV } from "./appletv.js?v=2.4.1";
+import { weatherData } from "./weather.js?v=2.4.1";
+import { searchSheet } from "./search.js?v=2.4.1";
+import { viewAttention, attentionCount } from "./attention.js?v=2.4.1";
+import { ic } from "./controls.js?v=2.4.1";
+import { quickIds, chipRoomOf, quickLabel } from "./quick.js?v=2.4.1";
 
 console.info(`%c DECKIFY %c ${DK_VER} `,
   "background:#f5b731;color:#2a2008;font-weight:700;border-radius:3px 0 0 3px",
@@ -113,9 +113,9 @@ class DeckifyCard extends HTMLElement {
     this._keyListener = null;
     this._visListener = null;
     this._kioskT = null;
-    this._kioskSb = false;
     this._hideHeaderEl = null;
     this._kioskStyle = null;
+    this._sidebarStyle = null;
   }
 
   /* ------------------------------------------------------------- config */
@@ -310,11 +310,9 @@ class DeckifyCard extends HTMLElement {
 
     /* Ikke la kioskvalgene henge igjen på Home Assistant etter at panelet
        er forlatt. */
-    if (this._kioskSb) {
-      const ha = document.querySelector("home-assistant");
-      if (ha) fireEvent(ha, "hass-dock-sidebar", { dock: "auto" });
-      try { fireEvent(window, "hass-dock-sidebar", { dock: "auto" }); } catch (e) {}
-      this._kioskSb = false;
+    if (this._sidebarStyle) {
+      try { this._sidebarStyle.textContent = ""; } catch (e) {}
+      this._sidebarStyle = null;
     }
     if (this._hideHeaderEl) {
       try { this._hideHeaderEl.style.removeProperty("display"); } catch (e) {}
@@ -451,6 +449,7 @@ class DeckifyCard extends HTMLElement {
     this._root.style.setProperty("--cardon", ctx.cardColor);
     this._root.classList.toggle("edit", !!this._st.edit);
     this._root.classList.toggle("embedded", true);
+    this._root.classList.toggle("cardmode", !this._isPanel);
     this._root.classList.toggle("phone", phone);
     /* Høy kontrast gjør kortflatene tettere og teksten sterkere — nødvendig
        på de lyse og de mest lavkontrast-bakgrunnene. */
@@ -632,7 +631,8 @@ class DeckifyCard extends HTMLElement {
     this._clearForecast();
     const gen = this._forecastGen;
     this._forecastEntity = eid;
-    if (!eid || !this._hass?.connection || !this._active) return;
+    if (!eid || !this._hass?.connection || !this._active ||
+        !this._hass.states[eid] || isDead(this._hass.states[eid])) return;
     for (const type of ["hourly", "daily"]) {
       try {
         const un = await this._hass.connection.subscribeMessage(
@@ -722,19 +722,34 @@ class DeckifyCard extends HTMLElement {
     return p[0] || "lovelace";
   }
 
+  _setSidebarHidden(hide) {
+    const host = document.querySelector("home-assistant")?.shadowRoot;
+    const main = deepQuery(host, "home-assistant-main");
+    const sr = main?.shadowRoot;
+    if (!sr) return false;
+    let st = sr.getElementById("deckify-sidebar");
+    if (!hide && !st) return true;
+    if (!st) {
+      st = document.createElement("style");
+      st.id = "deckify-sidebar";
+      sr.appendChild(st);
+    }
+    st.textContent = hide
+      ? ":host{--ha-sidebar-width:0px !important;--ha-top-app-bar-width:100% !important}ha-sidebar{display:none !important}"
+      : "";
+    this._sidebarStyle = st;
+    return true;
+  }
+
   _applyKiosk() {
     const hideSb = this._store.get("hideSidebar");
     const hideHd = this._store.get("hideHeader");
 
-    /* «auto» gir sidemenyen tilbake til HAs egen oppførsel når brukeren
-       skrur kioskvalget av. Uten dette ble sidefeltet stående skjult. */
-    if (hideSb) {
-      fireEvent(this, "hass-dock-sidebar", { dock: "always_hidden" });
-      this._kioskSb = true;
-    } else if (this._kioskSb) {
-      fireEvent(this, "hass-dock-sidebar", { dock: "auto" });
-      this._kioskSb = false;
-    }
+    /* Skjul sidefeltet med en stil som bare lever så lenge dette kortet er
+       montert. HAs eget `hass-dock-sidebar`-valg lagres globalt i nettleseren
+       og ble hengende igjen på helt andre dashbord etter at man forlot
+       Deckify. */
+    const sideOk = this._setSidebarHidden(!!hideSb);
 
     const apply = () => {
       if (!this._active) return;
@@ -762,7 +777,7 @@ class DeckifyCard extends HTMLElement {
       }
       return !!(header || sr);
     };
-    if (apply()) return;
+    if (apply() && sideOk) return;
     clearTimeout(this._kioskT);
     this._kioskT = setTimeout(() => { this._kioskT = null; apply(); }, 1200);
   }

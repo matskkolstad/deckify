@@ -2,16 +2,16 @@
  * Header, de fire layoutene, og sidene Hjem / Rom / Media / Sikkerhet.
  */
 import {
-  h, ICON, WEATHER_ICON, WEATHER_TEXT, fmtNum, isDead, domainOf, nameOf,
+  h, ICON, fmtNum, isDead, domainOf, nameOf,
   shortName, clamp,
-} from "./core.js?v=2.4.0";
+} from "./core.js?v=2.4.1";
 import {
   roomTile, deviceTile, deviceBig, mediaTile, securityTile, securityAlerts,
   climateTile, powerTile, sceneChip, listGroup, listRow,
   stateText, supportsBig, ic, isCardOn, anyTile, cardWrap,
-} from "./controls.js?v=2.4.0";
-import { weatherIcon, weatherText } from "./weather.js?v=2.4.0";
-import { quickRow, HOME_CHIPS, roomChipScope } from "./quick.js?v=2.4.0";
+} from "./controls.js?v=2.4.1";
+import { weatherIcon, weatherText } from "./weather.js?v=2.4.1";
+import { quickRow, HOME_CHIPS, roomChipScope } from "./quick.js?v=2.4.1";
 
 const NB_DAYS = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
 const NB_MON = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];
@@ -34,7 +34,6 @@ export function header(ctx, model) {
   const { hass, store } = ctx;
   const now = ctx.now;
   const c24 = store.get("clock24");
-  const w = ctx.cfg.weatherEntity ? hass.states[ctx.cfg.weatherEntity] : null;
   const agendaN = ctx.agenda?.todayCount ?? 0;
   const todoN = ctx.agenda?.todoPending ?? 0;
   const todoOver = ctx.agenda?.todoOverdue ?? 0;
@@ -47,12 +46,7 @@ export function header(ctx, model) {
         ${todoN ? `<span class="badge ${todoOver ? "red" : ""}">${todoN}</span>` : ""}</div>
     </div>` : "";
 
-  const weather = store.get("showWeather") && w ? `
-    <div class="wpill" data-act="overlay" data-o="weather">
-      ${ic(WEATHER_ICON[w.state] || "mdi:weather-cloudy")}
-      <span class="t">${fmtNum(w.attributes.temperature, 0)}°</span>
-      <span class="c">${h(WEATHER_TEXT[w.state] || w.state)}</span>
-    </div>` : "";
+  const weather = store.get("showWeather") ? weatherPill(ctx) : "";
 
   const people = store.get("showPeople") ? peopleHtml(ctx) : "";
 

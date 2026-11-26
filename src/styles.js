@@ -1,6 +1,6 @@
 /* Deckify — styles.js  (alt visuelt uttrykk) */
 
-import { BASE } from "./core.js?v=2.4.0";
+import { BASE } from "./core.js?v=2.4.1";
 
 export const CSS = `
 @font-face{font-family:'HDFigtree';font-style:normal;font-weight:300 800;font-display:swap;
@@ -1307,6 +1307,17 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
 .txtin:focus{border-color:var(--accent)}
 .btnrow{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px}
 .cardcfg .optrow{cursor:pointer}
+
+/* Kort i et vanlig Lovelace-dashbord: alle faste flater må holdes inne i
+   kortet, ellers legger bunnmenyen seg over hele HA-siden. */
+.hd.cardmode{position:relative;min-height:0}
+.hd.cardmode #shell{min-height:0;padding-bottom:104px}
+.hd.cardmode #dock{position:absolute;bottom:16px}
+.hd.cardmode #editfab{position:absolute;right:16px;bottom:70px}
+.hd.cardmode #overlay,.hd.cardmode #saver,.hd.cardmode #toast{position:absolute}
+.hd.cardmode .sheet{width:min(640px,calc(100% - 20px));max-height:calc(100% - 20px)}
+.hd.cardmode .sheet.wide,.hd.cardmode .sheet.full{width:calc(100% - 20px)}
+.hd.cardmode .sheet.full{height:calc(100% - 20px);max-height:calc(100% - 20px);top:10px}
 
 /* Tastatur og redusert bevegelse */
 .hd [data-act]:focus-visible,
