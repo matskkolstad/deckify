@@ -95,7 +95,7 @@
       },
       "pages": {
         "title": "Sider",
-        "description": "Hvilke sider menylinja skal vise.",
+        "description": "Hvilke ekstra sider som skal ligge under Mer. Hjem, Rom og Sikkerhet er alltid tilgjengelig.",
         "data": {
           "pages": "Sider"
         }

@@ -6,7 +6,7 @@ import {
   lightColor, LIGHT_SWATCHES, CT_STOPS, kelvinToRgb, fmtNum, mmss, WEATHER_ICON,
   BINARY_ICON, SENSOR_ICON, fullNameOf, CARD_SIZES, relTime, areaIdOf,
   sceneName as coreSceneName,
-} from "./core.js?v=2.4.3";
+} from "./core.js?v=2.5.0";
 
 const ic = (name, cls = "") => `<ha-icon class="${cls}" icon="${h(name)}"></ha-icon>`;
 
@@ -447,6 +447,7 @@ function cameraTile(ctx, eid, roomName, cardId, scope) {
 export function anyTile(ctx, eid, roomName, cardId, big = false, scope) {
   if (!ctx.hass.states[eid]) return "";
   const d = domainOf(eid);
+  if (d === "camera") return cameraTile(ctx, eid, roomName, cardId, scope);
   if (!CONTROLLISH.has(d)) return infoTile(ctx, eid, roomName, cardId, scope);
   if (big && supportsBig(ctx, eid)) return deviceBig(ctx, eid, roomName, cardId);
   return deviceTile(ctx, eid, roomName, cardId, scope);
@@ -873,7 +874,7 @@ export function listGroup(ctx, room, collapsed, ids) {
   return `
   <div class="lgroup ${collapsed ? "collapsed" : ""} ${ctx.edit ? "edit" : ""}">
     <div class="lrow head" ${ctx.edit ? "" : `data-act="collapse" data-r="${h(room.id)}"`}>
-      <div class="ic" ${on ? `style="background:var(--accent);color:#2a2008"` : ""}>${ic(room.icon)}</div>
+      <div class="ic" ${on ? `style="background:var(--accent);color:var(--accent-ink)"` : ""}>${ic(room.icon)}</div>
       <div class="txt">
         <div class="nm">${h(room.name)}</div>
         <div class="st">${room.lightIds.length ? `${room.lightsOn} av ${room.lightIds.length} på` : `${room.controls.length} enheter`}</div>

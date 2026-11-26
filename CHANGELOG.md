@@ -4,16 +4,61 @@ All notable changes to Deckify. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [semantic versioning](https://semver.org/).
 
-## [Unreleased]
+## [2.5.0] - 2026-11-26
+
+### Added
+
+- **Two layouts: Startskjerm and Oversikt.** Startskjerm is the overview-first
+  layout with clock, weather, room cards and summary. Oversikt has a permanent
+  sidebar with Home, rooms, Security and More. They share the same data,
+  rooms, themes and camera rules.
+- **Two themes: Kalk and Skog.** Warm limewash and olive, and deep forest with
+  smoked glass. Both use translucent glass surfaces, soft background light and
+  solid text tokens for contrast. The main text pairs are above WCAG AA.
+- **A More page** for Media, Energy, House and Needs attention, so the main
+  navigation stays short.
+- **Camera curation.** Camera cards are now ordinary editable cards with the
+  same remove and settings menu as other devices. Camera maps from robot
+  vacuums, tablet cameras and similar are hidden by default and can be enabled
+  in Dashboard settings.
+- **Home-room selection** is separate from which areas the dashboard covers.
 
 ### Changed
 
-- Documentation is now in English and split into focused pages under
-  `docs/`: getting started, configuration, tablet and kiosk, Lovelace card,
-  privacy, troubleshooting and development.
+- Navigation is reduced to Home, rooms, Security and More. The old bottom dock
+  with seven equal pages is gone from Oversikt; Startskjerm has a small four-item
+  dock.
+- The theme picker is two curated themes instead of 10 backgrounds, 14 card
+  colours and 12 accent colours. Background warmth and the separate
+  high-contrast toggle are gone because contrast is built in.
+- Settings are grouped around Layout, Dashboard, Appearance, Home, Rooms,
+  Navigation and System, with Appearance now holding only the two themes.
+- Startskjerm is compacted so the room row and summary fit a 1280×800 tablet
+  without clipping.
+- Old `grid`, `list` and `focus` layouts are migrated to Startskjerm. Old light
+  themes migrate to Kalk and old dark themes to Skog.
+- Pages under More are stored separately; Home, Rooms and Security are always
+  available.
+
+### Fixed
+
+- Cameras in a room could not be removed. They were rendered outside the
+  editable grid and ignored the room's hidden list. They now follow the same
+  order, edit and hide rules as every other card.
+- Kiosk mode could lose the hidden Home Assistant sidebar and top bar after a
+  hash navigation. The kiosk styles are re-applied while the card is mounted.
+- A room opened from Startskjerm now has a clear Home back button instead of
+  the old room rail.
+- Several hardcoded dark text colours on accent surfaces were replaced with
+  the theme's accent text, so light and dark themes both keep contrast.
+
+### Documentation
+
+- Documentation is now in English and split into focused pages under `docs/`:
+  getting started, configuration, tablet and kiosk, Lovelace card, privacy,
+  troubleshooting and development.
 - README, `info.md` and `CONTRIBUTING.md` are rewritten in English.
-- New 1280×800 landscape tablet screenshots for the overview, a room, the
-  security page and settings.
+- New landscape tablet screenshots show both layouts and both themes.
 
 ## [2.4.3] - 2026-11-26
 

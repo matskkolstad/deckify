@@ -58,16 +58,20 @@ under **Settings → Navigation**.
 
 Open **Settings → Layout**:
 
-- **Start screen** — large clock, weather and one summary tile per room.
-- **Grid** — cards side by side.
-- **Sidebar** — clock, status and rooms in a column. Recommended for a
-  landscape tablet.
-- **List** — rows with switches, grouped by room.
-- **Focus** — one room per screen, with horizontal swiping.
+- **Startskjerm** — clock, weather, room cards and a summary. Best for a quick
+  overview and the first screen.
+- **Oversikt** — a permanent sidebar with Home, rooms, Security and More.
+  Better when you control a lot from the tablet.
 
-Layout and kiosk choices are stored in the browser and can differ per device.
+Both layouts use the same rooms, cards and theme. Layout and kiosk choices are
+stored in the browser and can differ per device.
 
-## 5. Add more cards
+## 5. Choose a theme
+
+Open **Settings → Appearance** and choose **Kalk** (light) or **Skog** (dark).
+Both themes use the same glass surfaces and are built for readable contrast.
+
+## 6. Add more cards
 
 In edit mode press **Add devices**. The picker searches names, rooms, domains
 and entity IDs at the same time. Multiple words must all match, so
@@ -75,7 +79,7 @@ and entity IDs at the same time. Multiple words must all match, so
 
 Scenes are added from the **Scenes** button in edit mode.
 
-## 6. Next steps
+## 7. Next steps
 
 - [Connect the tablet](tablet-kiosk.md) and hide the Home Assistant sidebar.
 - Review [Configuration](configuration.md) for sensors, filters and per-card

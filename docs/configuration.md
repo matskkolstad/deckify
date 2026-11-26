@@ -35,7 +35,7 @@ The URL path is fixed when the entry is created.
   entities and keep adding new ones. Off means the dashboard stays exactly as
   you arranged it.
 - **Per-screen layout** — each browser gets its own order, hidden cards and
-  colours. When off, the server layout is shared by every screen.
+  theme. When off, the server layout is shared by every screen.
 
 A dashboard with auto-fill off starts empty on purpose. Room cards, system
 cards and devices can still be added manually.
@@ -78,15 +78,9 @@ Empty means “find it automatically”.
 
 ### Pages
 
-Choose which pages appear in the dock: Home, Rooms, Media, House, Energy,
-Security and Needs attention.
-
-The dashboard's **Navigation** pane uses the same list. The integration
-options also list **Start screen**; it is the Start screen layout of Home
-rather than a separate dock page.
-
-The **Home** page is always available as a fallback; if every page is turned
-off, Home is kept.
+Choose which extra pages appear under **More**: Media, House, Energy and Needs
+attention. Home, Rooms and Security are always available, both in the sidebar
+and in the Startskjerm bottom dock.
 
 ### Scenes
 
@@ -107,7 +101,7 @@ off, Home is kept.
 ### Reset layout
 
 Clears card order, hidden cards, sizes, groups and per-card settings. Rooms,
-sensors, filters, pages, scenes and colours are kept.
+sensors, filters, pages, scenes and theme are kept.
 
 A separate **Reset all** in the dashboard settings clears the whole server
 configuration and is intended as a last resort.
@@ -118,8 +112,8 @@ Open the gear in the Deckify header.
 
 ### Layout
 
-Choose one of the five layouts and enter edit mode. Layout choice is stored
-per device.
+Choose **Startskjerm** (overview first) or **Oversikt** (permanent sidebar),
+then enter edit mode. Layout choice is stored per device.
 
 ### Dashboard (global server setup)
 
@@ -129,8 +123,9 @@ settings.
 
 ### Appearance
 
-Card colour, accent colour, background, automatic warm background and high
-contrast. These values are shared unless per-screen layout is enabled.
+Choose **Kalk** (warm limewash light) or **Skog** (deep forest dark). Both
+themes use the same glass surfaces and solid text colours. The choice is
+shared unless per-screen layout is enabled.
 
 ### Home
 

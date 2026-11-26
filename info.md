@@ -8,9 +8,13 @@ not just a card.
   and calendars automatically
 - Empty from the start — you decide what it should show
 - A shared layout for every screen, or a separate layout per device
-- Per-card settings: size, info, actions, name, icon and colour
-- Five layouts, seven pages, and drag-and-drop editing that works with a
-  finger
+- Two layouts: Startskjerm for the quick overview, and Oversikt with a
+  permanent sidebar
+- Two themes: Kalk, a warm limewash light theme, and Skog, a deep forest dark
+  theme
+- Short navigation with Home, Rooms, Security and More
+- Per-card settings, editable camera cards and drag-and-drop editing that
+  works with a finger
 - Editable quick tiles: your own buttons at the top of Home and each room
 - A screensaver with a large clock and date, in your own theme
 

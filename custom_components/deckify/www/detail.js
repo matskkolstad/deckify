@@ -6,9 +6,9 @@
 import {
   h, ICON, clamp, domainOf, nameOf, shortName, isDead, isOn, fmtNum, mmss, relativeTime,
   lightColor, LIGHT_SWATCHES, kelvinToRgb, WEATHER_ICON,
-} from "./core.js?v=2.4.3";
-import { ic, stateText, isCardOn, mediaPos } from "./controls.js?v=2.4.3";
-import { sheet } from "./overlays.js?v=2.4.3";
+} from "./core.js?v=2.5.0";
+import { ic, stateText, isCardOn, mediaPos } from "./controls.js?v=2.5.0";
+import { sheet } from "./overlays.js?v=2.5.0";
 
 const HVAC_LABEL = { heat: "Varme", cool: "Kjøling", auto: "Auto", heat_cool: "Auto",
                      dry: "Tørke", fan_only: "Vifte", off: "Av" };
@@ -28,7 +28,7 @@ function head(ctx, eid, roomName) {
   const changed = st ? relativeTime(st.last_changed, ctx.now) : "";
   return `
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:4px">
-      <div class="ic" style="width:54px;height:54px;${col ? `background:${col};color:#2a2008` : ""}">
+      <div class="ic" style="width:54px;height:54px;${col ? `background:${col};color:var(--accent-ink)` : ""}">
         ${ic(d === "light" ? ICON.light : ICON.home)}</div>
       <div style="flex:1;min-width:0">
         <div class="h2" style="font-size:20px">${h(nm)}</div>

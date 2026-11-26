@@ -352,10 +352,25 @@ run("hurtigvalg/edit", () => {
     if (!html.includes(need)) throw new Error("mangler " + need + " i redigeringsmodus");
   return html;
 });
-run("hurtigvalg/alle-layouter", () => {
+run("kamera/redigerbart", () => {
+  const r = model.rooms.find((x) => x.cameras && x.cameras.length);
+  if (!r) return "ingen kamera i fixturen" + " ".repeat(30);
+  const ids = views.visibleRoomTiles(mkCtx({}), r);
+  if (!ids.includes(r.cameras[0]))
+    throw new Error("kameraet mangler i rommets redigerbare liste");
+  const html = views.roomBody(mkCtx({ view: "rooms", roomSel: r.id, edit: true }), model, r);
+  if (!html.includes(r.cameras[0]))
+    throw new Error("kameraet ble ikke rendret i rommet");
+  const tile = ctr.anyTile(mkCtx({ edit: true }), r.cameras[0], r.name, null, false, "room:" + r.id);
+  if (!/data-act="hide"/.test(tile))
+    throw new Error("kamerakortet mangler skjul-knapp i redigeringsmodus");
+  return "kamera i rommet: " + r.cameras[0] + " ".repeat(20);
+});
+run("hurtigvalg/aktive-layouter", () => {
   const out = [];
-  for (const [n, fn] of [["grid", views.viewHomeGrid], ["list", views.viewHomeList],
-                         ["sidebar", views.viewHomeSidebar]]) {
+  /* Oversikt har bevisst ingen hurtigvalgsrad: den skal være rolig og
+     navigasjonsstyrt. Hurtigvalgene hører til Hjem/rom i de andre visningene. */
+  for (const [n, fn] of [["grid", views.viewHomeGrid], ["list", views.viewHomeList]]) {
     const html = fn(mkCtx({ layout: n }), model);
     if (!/data-dropzone="chips:home"/.test(html))
       throw new Error("layout " + n + " mangler hurtigvalgsraden");
@@ -367,15 +382,14 @@ run("hurtigvalg/alle-layouter", () => {
   return "hurtigvalg i " + out.join(", ") + " ".repeat(30);
 });
 
-/* «Oversikt» skal ikke stå igjen som en tom overskrift. */
-run("tom/ingen-oversikt", () => {
+/* Hjem-menyvalget skal alltid finnes i Oversikt, også når dashbordet er tomt. */
+run("tom/hjem-meny", () => {
   const html = sta.viewStart(emptyCtx({ layout: "start" }), model);
-  if (/>Oversikt</.test(html)) throw new Error("tom Oversikt-overskrift vises likevel");
+  if (/>Oversikt</.test(html)) throw new Error("gammel Oversikt-overskrift vises");
   const sb = views.viewHomeSidebar(emptyCtx({ layout: "sidebar" }), model);
-  if (/data-r="overview"/.test(sb)) throw new Error("tomt Oversikt-menyvalg vises likevel");
+  if (!/data-r="overview"/.test(sb)) throw new Error("Hjem-menyvalget mangler");
   const sbEdit = views.viewHomeSidebar(emptyCtx({ layout: "sidebar", edit: true }), model);
-  if (!/data-r="overview"/.test(sbEdit))
-    throw new Error("Oversikt kommer ikke tilbake i redigeringsmodus");
+  if (!/data-r="overview"/.test(sbEdit)) throw new Error("Hjem-menyvalget mangler i redigering");
   return html;
 });
 
@@ -435,9 +449,9 @@ run("saver/forsinkelser", () => {
 });
 
 run("lyst-tema", () => {
-  if (!core.isLightBg("dagslys")) throw new Error("dagslys er ikke merket lyst");
-  if (core.isLightBg("plomme")) throw new Error("plomme skal være mørkt");
-  const base = core.bgBase("dagslys", 0);
+  if (!core.isLightBg("kalk")) throw new Error("kalk er ikke merket lyst");
+  if (core.isLightBg("skog")) throw new Error("skog skal være mørkt");
+  const base = core.bgBase("kalk", 0);
   if (!/^#[0-9a-f]{6}$/.test(base)) throw new Error("bgBase ga " + base);
   if (!CSS.includes(".hd.light{")) throw new Error("mangler .hd.light-blokk");
   /* hver lys bakgrunn må ha light:true, ellers blir teksten uleselig */
@@ -446,7 +460,7 @@ run("lyst-tema", () => {
     if (lum > 150 && !b.light) throw new Error(b.id + " er lys men mangler light:true");
     if (lum < 100 && b.light) throw new Error(b.id + " er mørk men har light:true");
   }
-  return "lyse temaer: " + core.BACKGROUNDS.filter((b) => b.light).map((b) => b.id).join(", ");
+  return "lyse temaer: " + core.BACKGROUNDS.filter((b) => b.light).map((b) => b.id).join(", ") + " ".repeat(30);
 });
 
 if (typeof CSS !== "string" || CSS.length < 5000)

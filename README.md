@@ -26,14 +26,18 @@ Built for **landscape wall tablets**, but it works on phones and desktops too.
 - **Empty by default.** A new dashboard is blank on purpose. Turn on
   *Behaviour → Fill the dashboard automatically* if you want it to fill
   itself, or add rooms, system cards and devices yourself.
-- **Shared or per-screen layouts.** By default the layout is stored on the
-  server and shared by every screen. Enable *Per-screen layout* to give the
-  tablet, phone and desktop their own order, hidden cards and colours.
+- **Shared or per-screen layouts.** By default the layout and theme are stored
+  on the server and shared by every screen. Enable *Per-screen layout* to give
+  the tablet, phone and desktop their own order, hidden cards and theme.
 - **Per-card settings.** Size (1×1, 2×1, 1×2, 2×2), info text, tap / hold /
   double-tap actions (toggle, detail panel, HA more-info, run scene, navigate,
   call a service), custom name, icon, colour and confirmation before acting.
-- **Five layouts:** Start screen, Grid, Sidebar, List and Focus.
-- **Pages:** Home, Rooms, Media, House, Energy, Security and Needs attention.
+- **Two layouts:** Startskjerm for the quick overview, and Oversikt with a
+  permanent sidebar for controlling a lot.
+- **Navigation:** Home, Rooms, Security and More. Media, Energy, House and
+  Needs attention live under More.
+- **Two themes:** Kalk, a warm limewash light theme, and Skog, a deep forest
+  dark theme. Both use glass surfaces with readable, solid text.
 - **Tablet and kiosk friendly.** Hide the Home Assistant sidebar, use a
   screensaver with a large clock, and keep the dashboard on a wall tablet.
 - **Drag-and-drop editing** that works with a finger, a detail panel per
@@ -43,13 +47,17 @@ Built for **landscape wall tablets**, but it works on phones and desktops too.
 
 ## Screenshots
 
-| Overview | Room |
+| Startskjerm · Kalk | Oversikt · Kalk |
 |---|---|
-| ![Overview](docs/tablet-overview.png) | ![Room](docs/tablet-room.png) |
+| ![Startskjerm](docs/tablet-overview.png) | ![Oversikt](docs/tablet-oversikt.png) |
 
-| Security | Settings |
+| Room | Security |
 |---|---|
-| ![Security](docs/tablet-security.png) | ![Settings](docs/tablet-settings.png) |
+| ![Room](docs/tablet-room.png) | ![Security](docs/tablet-security.png) |
+
+| Settings | Startskjerm · Skog |
+|---|---|
+| ![Settings](docs/tablet-settings.png) | ![Dark theme](docs/tablet-dark.png) |
 
 The screenshots use Norwegian UI text because the frontend is currently
 Norwegian. English UI localization is planned separately from this
@@ -127,7 +135,7 @@ the dashboard settings are best for everyday changes.
 | **Areas** | Which Home Assistant areas are included |
 | **Devices** | Hidden entities, switches treated as lights, confirmation rules |
 | **Sensors** | Override weather, power, price, outdoor temperature, to-dos, … |
-| **Pages** | Which pages appear in the dock |
+| **Pages** | Extra pages under More |
 | **Scenes** | Pinned scenes, maximum count, short names |
 | **Advanced filters** | Ignored integrations, regex filters, battery warning |
 | **Reset layout** | Reset order, hidden cards, sizes, groups and card settings |

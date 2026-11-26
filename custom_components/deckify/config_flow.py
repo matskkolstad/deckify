@@ -358,13 +358,14 @@ class DeckifyOptionsFlow(OptionsFlow):
         cfg = self._cfg()
         if user_input is not None:
             pages = [p for p in PAGES if p in (user_input.get("pages") or [])]
-            await self._patch({"pages": pages or ["home"]})
+            await self._patch({"pages": pages})
             return self._done(reload=True)
 
+        current = [p for p in (cfg.get("pages") or PAGES) if p in PAGES]
         schema = vol.Schema(
             {
                 vol.Optional(
-                    "pages", default=cfg.get("pages") or PAGES
+                    "pages", default=current
                 ): selector.SelectSelector(
                     selector.SelectSelectorConfig(
                         options=[

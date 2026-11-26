@@ -1,6 +1,6 @@
 /* Deckify — styles.js  (alt visuelt uttrykk) */
 
-import { BASE } from "./core.js?v=2.4.3";
+import { BASE } from "./core.js?v=2.5.0";
 
 export const CSS = `
 @font-face{font-family:'HDFigtree';font-style:normal;font-weight:300 800;font-display:swap;
@@ -11,24 +11,32 @@ export const CSS = `
   unicode-range:U+0100-02BA,U+1E00-1E9F,U+2020,U+20A0-20AB;}
 
 :host{
-  --r:22px; --r-sm:16px; --r-lg:28px;
-  --accent:#f5b731;
-  --cardon:#f2e8d0;
-  --ink:#221d19;
-  --ink-sub:rgba(34,29,25,.52);
-  --off:rgba(255,255,255,.095);
-  --off-hi:rgba(255,255,255,.155);
+  --r:18px; --r-sm:14px; --r-lg:24px;
+  --accent:#c9d5ba;
+  --accent-ink:#1d221c;
+  --cardon:rgba(201,213,186,.14);
+  --ink:#f4f1e9;
+  --ink-sub:rgba(244,241,233,.62);
+  --off:rgba(38,45,39,.52);
+  --off-hi:rgba(255,255,255,.09);
   --off-br:rgba(255,255,255,.13);
-  --tx:#fff;
-  --tx-sub:rgba(255,255,255,.62);
-  --tx-dim:rgba(255,255,255,.42);
-  --label:rgba(255,255,255,.52);
-  --dock:rgba(28,18,26,.62);
+  --tx:#f4f1e9;
+  --tx-sub:#cdc6b9;
+  --tx-dim:#a79e91;
+  --label:#a79e91;
+  --dock:rgba(20,25,21,.66);
+  --nav-active:#c9d5ba;
+  --nav-active-tx:#1d221c;
   /* Fylt knapp («Skru alt av»). Må snus i lyse temaer, ellers er en hvit
      pille på kremhvit bakgrunn nesten usynlig. */
-  --solid-bg:#fff;
-  --solid-tx:#241d17;
-  --sheet-bg:rgba(22,16,24,.97);
+  --solid-bg:#c9d5ba;
+  --solid-tx:#1d221c;
+  --sheet-bg:rgba(24,30,25,.92);
+  --blob1:#3e4c3c;
+  --blob2:#5a432e;
+  --glass:blur(26px) saturate(1.06);
+  --inner:inset 0 1px 0 rgba(255,255,255,.08);
+  --card-shadow:0 14px 40px -24px rgba(0,0,0,.8);
   --gap:14px;
   --pad:26px;
   display:block;
@@ -52,9 +60,13 @@ ha-icon{display:inline-flex;align-items:center;justify-content:center;
 }
 .hd.embedded{min-height:calc(100vh - 56px)}
 
-#bg{position:absolute; inset:0; z-index:0; transition:background 2.4s ease}
-#bg::after{content:'';position:absolute;inset:0;
-  background:radial-gradient(90% 70% at 50% 110%, rgba(0,0,0,.35), transparent 70%)}
+#bg{position:absolute; inset:0; z-index:0; transition:background 2.4s ease;overflow:hidden}
+#bg::before,#bg::after{content:'';position:absolute;border-radius:50%;
+  filter:blur(80px);pointer-events:none}
+#bg::before{width:520px;height:520px;left:-120px;top:-160px;
+  background:var(--blob1);opacity:.62}
+#bg::after{width:640px;height:640px;right:-160px;bottom:-260px;
+  background:var(--blob2);opacity:.5}
 
 #shell{position:relative; z-index:1; display:flex; flex-direction:column;
   min-height:100vh; padding:var(--pad) var(--pad) 104px}
@@ -182,7 +194,7 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
 .ic{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;
   background:var(--off-hi);color:var(--tx);transition:background .25s,color .25s}
 .ic ha-icon{--mdc-icon-size:22px}
-.card.on .ic{background:var(--accent);color:#2a2008}
+.card.on .ic{background:var(--accent);color:var(--accent-ink)}
 .pw{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;
   background:rgba(255,255,255,.10);color:var(--tx);cursor:pointer;transition:background .2s,transform .12s}
 .pw:active{transform:scale(.88)}
@@ -317,21 +329,36 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
 
 /* --------------------------------------------------------- sidebar-layout */
 .sbwrap{display:flex;gap:20px;align-items:flex-start;margin-top:0}
-.sidebar{flex:0 0 268px;border-radius:var(--r-lg);background:rgba(255,255,255,.065);
-  border:1px solid var(--off-br);backdrop-filter:blur(16px);padding:20px 16px;
-  position:sticky;top:var(--pad);max-height:calc(100vh - 2*var(--pad) - 70px);overflow-y:auto}
+.sidebar{flex:0 0 236px;border-radius:var(--r-lg);background:var(--off);
+  border:1px solid var(--off-br);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);
+  padding:22px 14px 18px;position:sticky;top:var(--pad);
+  max-height:calc(100vh - 2*var(--pad) - 70px);overflow-y:auto;
+  display:flex;flex-direction:column;gap:18px;box-shadow:var(--inner),var(--card-shadow)}
 .sidebar::-webkit-scrollbar{width:0}
 .sbmain{flex:1;min-width:0}
+.sidebrand{display:flex;align-items:center;gap:11px;padding:0 8px 6px}
+.sidebrand b{display:block;font-size:15px;letter-spacing:-.01em}
+.sidebrand span{display:block;font-size:11px;color:var(--tx-sub);margin-top:1px}
+.brandmark{width:34px;height:34px;border-radius:10px;background:var(--accent);
+  display:grid;grid-template-columns:repeat(2,1fr);gap:3px;padding:8px;flex:0 0 auto}
+.brandmark i{background:var(--accent-ink);border-radius:1px;opacity:.95}
+.sidenav{display:flex;flex-direction:column;gap:3px}
+.navlabel{font-size:11px;font-weight:650;color:var(--tx-dim);padding:14px 10px 5px;letter-spacing:.02em}
+.sidefoot{margin-top:auto;display:flex;flex-direction:column;gap:10px}
+.themeswitch{display:grid;grid-template-columns:1fr 1fr;background:var(--off);
+  border:1px solid var(--off-br);border-radius:10px;padding:3px;gap:3px}
+.ts{padding:7px 8px;border-radius:7px;font-size:12px;font-weight:600;color:var(--tx-sub);text-align:center;cursor:pointer}
+.ts.sel{background:var(--accent);color:var(--accent-ink)}
 .navlist{margin-top:14px;display:flex;flex-direction:column;gap:2px}
 .navitem{display:flex;align-items:center;gap:11px;height:42px;padding:0 13px;border-radius:13px;
   cursor:pointer;font-size:14px;font-weight:600;color:var(--tx-sub);transition:background .16s,color .16s}
-.navitem:hover{background:rgba(255,255,255,.06);color:var(--tx)}
-.navitem.sel{background:#fff;color:#241d17}
+.navitem:hover{background:var(--off-hi);color:var(--tx)}
+.navitem.sel{background:var(--nav-active);color:var(--nav-active-tx)}
 .navitem ha-icon{--mdc-icon-size:18px}
 .navitem .cnt{margin-left:auto;min-width:20px;height:20px;border-radius:10px;background:var(--accent);
-  color:#241c0c;font-size:11.5px;font-weight:700;display:grid;place-items:center;padding:0 6px}
+  color:var(--accent-ink);font-size:11.5px;font-weight:700;display:grid;place-items:center;padding:0 6px}
 .navitem.sel .cnt{background:var(--accent)}
-.divider{height:1px;background:rgba(255,255,255,.09);margin:14px 0}
+.divider{height:1px;background:var(--off-br);margin:14px 0}
 
 /* ----------------------------------------------------------- fokuslayout */
 .focuswrap{display:flex;flex-direction:column;min-height:72vh;justify-content:center}
@@ -339,8 +366,8 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
   font-variant-numeric:tabular-nums}
 .focusmeta{display:flex;align-items:center;gap:16px;margin-top:14px;flex-wrap:wrap}
 .pager{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:26px}
-.pager .dot{width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.26);transition:width .2s}
-.pager .dot.sel{width:22px;background:#fff}
+.pager .dot{width:7px;height:7px;border-radius:4px;background:var(--off-br);transition:width .2s}
+.pager .dot.sel{width:22px;background:var(--tx)}
 .pbtn{width:32px;height:32px;border-radius:50%;background:var(--off);border:1px solid var(--off-br);
   display:grid;place-items:center;cursor:pointer;color:var(--tx)}
 
@@ -351,25 +378,26 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
   backdrop-filter:blur(12px);white-space:nowrap}
 .roomtab.sel{background:var(--cardon);color:var(--ink);border-color:transparent}
 .roomtab ha-icon{--mdc-icon-size:17px}
-.roomtab .cnt{min-width:19px;height:19px;border-radius:10px;background:var(--accent);color:#241c0c;
+.roomtab .cnt{min-width:19px;height:19px;border-radius:10px;background:var(--accent);color:var(--accent-ink);
   font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 5px}
 
 /* ----------------------------------------------------------------- dock */
 #dock{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:40;
   display:flex;align-items:center;gap:4px;padding:6px;border-radius:26px;
-  background:var(--dock);backdrop-filter:blur(22px) saturate(1.4);
-  border:1px solid rgba(255,255,255,.10);box-shadow:0 16px 40px -14px rgba(0,0,0,.6)}
+  background:var(--dock);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);
+  border:1px solid var(--off-br);box-shadow:var(--inner),0 16px 40px -14px rgba(0,0,0,.45)}
 .dockitem{display:flex;align-items:center;gap:8px;height:40px;padding:0 17px;border-radius:20px;cursor:pointer;
-  font-size:14px;font-weight:600;color:rgba(255,255,255,.7);transition:background .18s,color .18s}
-.dockitem.sel{background:#fff;color:#241d17}
+  font-size:14px;font-weight:600;color:var(--tx-sub);transition:background .18s,color .18s}
+.dockitem:hover{background:var(--off-hi);color:var(--tx)}
+.dockitem.sel{background:var(--nav-active);color:var(--nav-active-tx)}
 .dockitem ha-icon{--mdc-icon-size:18px}
 @media(max-width:620px){.dockitem .t{display:none}.dockitem{padding:0 14px}}
 
 #editfab{position:fixed;right:22px;bottom:18px;z-index:40;display:flex;align-items:center;gap:8px;
   height:46px;padding:0 20px;border-radius:23px;cursor:pointer;font-size:14px;font-weight:600;
-  background:var(--dock);backdrop-filter:blur(22px);border:1px solid rgba(255,255,255,.10);color:var(--tx);
-  box-shadow:0 16px 40px -14px rgba(0,0,0,.6)}
-#editfab.active{background:#fff;color:#241d17;border-color:transparent}
+  background:var(--dock);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);
+  border:1px solid var(--off-br);color:var(--tx);box-shadow:var(--inner),0 16px 40px -14px rgba(0,0,0,.45)}
+#editfab.active{background:var(--nav-active);color:var(--nav-active-tx);border-color:transparent}
 @media(max-width:620px){#editfab{padding:0;width:46px;justify-content:center}#editfab .t{display:none}}
 
 /* ------------------------------------------------------- redigeringsmodus */
@@ -714,9 +742,9 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
 /* planter og batterier bruker .minibar med egne farger — ingen ekstra CSS */
 
 /* ========================= STARTSKJERM ========================= */
-.startHero{display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap}
-.startClockCol{flex:1 1 420px;min-width:300px}
-.startClock{font-size:clamp(78px,11vw,164px);font-weight:200;letter-spacing:-.055em;
+.startHero{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}
+.startClockCol{flex:1 1 360px;min-width:260px}
+.startClock{font-size:clamp(64px,7vw,104px);font-weight:200;letter-spacing:-.055em;
   line-height:.92;margin-top:2px}
 .startStatus{font-size:clamp(20px,2.4vw,30px);font-weight:600;letter-spacing:-.02em;margin-top:8px}
 .startSide{flex:0 1 330px;display:flex;flex-direction:column;gap:14px;padding-top:6px}
@@ -734,17 +762,17 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
 .startChip .pdot{width:22px;height:22px;border-radius:50%;background-size:cover;
   background-position:center;display:block}
 
-.startGrid{display:grid;gap:var(--gap);margin-top:9px;
-  grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));
-  grid-auto-rows:206px}
-.card.startRoom{padding:17px 18px}
-.startRoomName{font-size:21px;font-weight:600;letter-spacing:-.015em;margin-top:12px}
+.startGrid{display:grid;gap:var(--gap);margin-top:6px;
+  grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));
+  grid-auto-rows:180px}
+.card.startRoom{padding:14px 15px}
+.startRoomName{font-size:18px;font-weight:600;letter-spacing:-.015em;margin-top:7px}
 .startRoomLights{font-size:13px;color:var(--tx-sub);margin-top:3px;display:flex;
   align-items:center;gap:9px;flex-wrap:wrap}
 .card.on .startRoomLights{color:var(--ink-sub)}
 .startRoomLights .dots{margin-top:0}
 .startTopRight{display:flex;align-items:center;gap:11px}
-.startRoomTemp{font-size:26px;font-weight:600;letter-spacing:-.02em;
+.startRoomTemp{font-size:21px;font-weight:600;letter-spacing:-.02em;
   font-variant-numeric:tabular-nums;opacity:.92;line-height:1}
 .sfacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}
 .sfact{display:inline-flex;align-items:center;gap:5px;height:27px;padding:0 10px;
@@ -1159,22 +1187,30 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
    usynlig, og hvit tekst er uleselig. Alt som er stemt for mørkt har en
    .light-motpart her. */
 .hd.light{
-  /* Flatene var så svake at kortene fløt sammen med bakgrunnen, og
-     sekundærteksten lå rundt 3:1 mot underlaget. Begge deler er hevet. */
-  --off:rgba(22,18,15,.075);
-  --off-hi:rgba(22,18,15,.13);
-  --off-br:rgba(22,18,15,.16);
-  --tx:#17130f;
-  --tx-sub:rgba(23,19,15,.66);
-  --tx-dim:rgba(23,19,15,.46);
-  --label:rgba(23,19,15,.56);
-  --dock:rgba(255,255,255,.86);
-  --solid-bg:#241d17;
-  --solid-tx:#fff;
-  --sheet-bg:rgba(252,250,246,.98);
+  --accent:#4e5d46;
+  --accent-ink:#f8f5ee;
+  --cardon:rgba(78,93,70,.15);
+  --ink:#25231f;
+  --ink-sub:rgba(37,35,31,.58);
+  --off:rgba(255,253,249,.55);
+  --off-hi:rgba(255,255,255,.75);
+  --off-br:rgba(62,52,42,.14);
+  --tx:#25231f;
+  --tx-sub:#5f584e;
+  --tx-dim:#6f665b;
+  --label:#6f665b;
+  --dock:rgba(255,252,247,.62);
+  --nav-active:#33402f;
+  --nav-active-tx:#f7f4ec;
+  --solid-bg:#33402f;
+  --solid-tx:#f7f4ec;
+  --sheet-bg:rgba(250,247,241,.94);
+  --blob1:#c7d2bd;
+  --blob2:#ddc5ae;
+  --inner:inset 0 1px 0 rgba(255,255,255,.66);
+  --card-shadow:0 10px 30px -24px rgba(50,40,30,.5);
 }
-.hd.light #bg::after{
-  background:radial-gradient(90% 70% at 50% 110%, rgba(40,30,20,.10), transparent 70%)}
+.hd.light #bg::after{background:var(--blob2);opacity:.5}
 .hd.light .card{box-shadow:0 2px 6px -2px rgba(30,22,14,.12)}
 .hd.light .camwrap::after{height:40%}
 .hd.light .card.on{box-shadow:0 12px 28px -14px rgba(40,30,20,.45);
@@ -1318,6 +1354,37 @@ header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
 .hd.cardmode .sheet{width:min(640px,calc(100% - 20px));max-height:calc(100% - 20px)}
 .hd.cardmode .sheet.wide,.hd.cardmode .sheet.full{width:calc(100% - 20px)}
 .hd.cardmode .sheet.full{height:calc(100% - 20px);max-height:calc(100% - 20px);top:10px}
+
+/* ------------------------------------------------ 2.5: glass og to temaer */
+.card, .themechoice{backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);
+  box-shadow:var(--inner),var(--card-shadow)}
+.chip,.sensorpill,.rbtn,.pbtn,.wbtn,.abtn,.startChip{backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass)}
+.sheet{backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);border-color:var(--off-br)}
+.roomtopline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.backbtn{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 13px;border-radius:11px;
+  background:var(--off);border:1px solid var(--off-br);color:var(--tx-sub);font-size:12.5px;
+  font-weight:650;cursor:pointer}
+.backbtn:hover{background:var(--off-hi);color:var(--tx)}
+.moregrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.themegrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.themechoice{border:1px solid var(--off-br);border-radius:14px;padding:10px;background:var(--off);
+  text-align:left;cursor:pointer;transition:border-color .16s,box-shadow .16s;color:var(--tx)}
+.themechoice.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.themeprev{height:64px;border-radius:9px;border:1px solid var(--off-br);margin-bottom:9px;position:relative;overflow:hidden}
+.themeprev.kalk{background:radial-gradient(90% 70% at 10% 0%,#f8f4ec,#efeae1 58%,#e5ddd1)}
+.themeprev.skog{background:radial-gradient(90% 70% at 0 0,#263027,#1c211d 58%,#121613)}
+.themeprev::after{content:"";position:absolute;left:12%;right:12%;top:22%;height:30%;
+  border-radius:7px;background:rgba(255,255,255,.58);border:1px solid rgba(255,255,255,.5);
+  backdrop-filter:blur(6px)}
+.themeprev.skog::after{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.14)}
+.themechoice b{display:block;font-size:13px;font-weight:700}
+.themechoice span{display:block;font-size:11.5px;color:var(--tx-sub);margin-top:3px}
+.hd.light .card{box-shadow:var(--inner),var(--card-shadow)}
+.hd.light .card.on{box-shadow:var(--inner),0 12px 28px -18px rgba(40,30,20,.35)}
+.hd.light .navitem.sel{background:var(--nav-active);color:var(--nav-active-tx)}
+.hd.light #dock{background:var(--dock);border-color:var(--off-br)}
+.hd.light .dockitem{color:var(--tx-sub)}
+.hd.light .dockitem.sel{background:var(--nav-active);color:var(--nav-active-tx)}
 
 /* Tastatur og redusert bevegelse */
 .hd [data-act]:focus-visible,

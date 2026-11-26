@@ -7,8 +7,9 @@ Deckify is local-first. It has no account and no telemetry.
 - **Dashboard configuration** — rooms, order, hidden cards, sizes, filters,
   sensor bindings and per-card settings are stored by the integration inside
   Home Assistant's `.storage`.
-- **Device preferences** — layout, kiosk options, screensaver delay and
-  content, and per-screen layouts are stored in the browser's `localStorage`.
+- **Device preferences** — layout, theme when per-screen layout is enabled,
+  kiosk options, screensaver delay and content are stored in the browser's
+  `localStorage`.
 - **Rendered data** — entity states, calendars, to-dos, history, camera
   images and media metadata are read from Home Assistant's own APIs.
 

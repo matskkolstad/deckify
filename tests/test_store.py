@@ -85,7 +85,7 @@ class StoreTests(unittest.TestCase):
         cfg = self.store.get("e")
         self.assertEqual(cfg["title"], "Gammelt")
         self.assertIn("pages", cfg)
-        self.assertEqual(cfg["pages"], ["home"])
+        self.assertEqual(cfg["pages"], ["media", "house"])
 
     def test_reset_layout_keeps_configuration(self):
         asyncio.run(self.store.async_init_entry("e", {

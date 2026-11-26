@@ -43,7 +43,7 @@ one sensor slot without deleting its neighbours.
 | `deckify.js` | The custom element: state, lifecycle, routing, events, actions, edit mode, kiosk and the screensaver timer. |
 | `core.js` | Configuration resolution, entity discovery, model building, helpers, storage keys and the lazy device list. |
 | `views.js` | Header, Home layouts, Rooms, Media, Security, House, Energy, Needs attention and the dock. |
-| `start.js` | The Start screen layout. |
+| `start.js` | The Startskjerm layout. |
 | `cards.js` | Card and tile HTML plus the per-card settings sheet. |
 | `controls.js` | Domain controls, icons and service calls. |
 | `detail.js` | Detail panel per domain. |

@@ -6,11 +6,11 @@
 import {
   h, ICON, clamp, fmtNum, isDead, shortName, domainOf, truncate,
   WEATHER_ICON, WEATHER_TEXT, lightColor,
-} from "./core.js?v=2.4.3";
-import { ic, anyTile } from "./controls.js?v=2.4.3";
-import { appleTVs } from "./appletv.js?v=2.4.3";
-import { weatherIcon, weatherText } from "./weather.js?v=2.4.3";
-import { dateString, timeString, onboarding } from "./views.js?v=2.4.3";
+} from "./core.js?v=2.5.0";
+import { ic, anyTile } from "./controls.js?v=2.5.0";
+import { appleTVs } from "./appletv.js?v=2.5.0";
+import { weatherIcon, weatherText } from "./weather.js?v=2.5.0";
+import { dateString, timeString, onboarding } from "./views.js?v=2.5.0";
 
 const nval = (ctx, eid) => {
   const st = eid ? ctx.hass.states[eid] : null;
@@ -388,11 +388,11 @@ export function viewStart(ctx, model) {
     ${hero(ctx, model)}
     ${ctx.edit ? `<div class="edithint">Dra romrutene for å endre rekkefølgen, eller trykk − for å skjule et rom her.</div>` : ""}
     ${roomsHtml || ctx.edit ? `
-      <div class="lbl" style="margin-top:26px">Rommene</div>
+      <div class="lbl" style="margin-top:14px">Rommene</div>
       <div class="startGrid" data-dropzone="${scope}">${roomsHtml}</div>` : ""}
     ${!sorted.length && !ctx.edit ? onboarding(ctx) : ""}
     ${summaryHtml || ctx.edit ? `
-      <div class="lbl" style="margin-top:26px">Oversikt</div>
+      <div class="lbl" style="margin-top:14px">Oversikt</div>
       ${ctx.edit ? `<div class="edithint">Dra for å flytte, trykk − for å skjule, eller legg til flere enheter.</div>` : ""}
       <div class="grid" style="margin-top:9px" data-dropzone="${SUMMARY_SCOPE}">${summaryHtml}</div>` : ""}`;
 }

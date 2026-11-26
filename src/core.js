@@ -3,7 +3,7 @@
  * Bygget for Home Assistant. Ingen HACS-avhengighet.
  */
 
-export const DK_VER = "2.4.3";
+export const DK_VER = "2.5.0";
 
 /* Basis-URL for modulene. Integrasjonen serverer dem fra /deckify_files/,
    men kortet skal også fungere hvis noen legger filene et annet sted — så
@@ -271,106 +271,72 @@ export const ACCENT_COLORS = [
   { id: "lime",    name: "Lime",      hex: "#9ad42c" },
 ];
 
-/* Bakgrunner. Hver har en "kald" (alt av) og "varm" (mye på) variant som
-   krysstones etter hvor mye lys som er på hjemme. */
-export const BACKGROUNDS = [
+/* To ferdige temaer. `light: true` snur tekst- og flatefargene
+   (.hd.light i styles.js). `off`/`on` beholdes som kompatible farger for
+   tester og gamle lagringer, men bgCss bruker den faste `bg`-gradienten. */
+export const THEMES = [
   {
-    id: "plomme", name: "Plomme",
-    off: ["#3c1f36", "#271428", "#140b14"],
-    on:  ["#6b3357", "#3d1d33", "#190e17"],
+    id: "kalk", name: "Kalk", desc: "Varm kalk og oliven", light: true,
+    base: "#ede8df",
+    off: ["#f8f4ec", "#efeae1", "#e5ddd1"],
+    on:  ["#f8f4ec", "#efeae1", "#e5ddd1"],
+    bg: "radial-gradient(90% 70% at 10% 0%, #f8f4ec 0%, transparent 58%), radial-gradient(80% 70% at 100% 100%, #dfd1c0 0%, transparent 62%), linear-gradient(155deg, #efeae1 0%, #e5ddd1 100%)",
+    accent: "#4e5d46",
+    accentInk: "#f8f5ee",
+    cardon: "rgba(78,93,70,.15)",
+    ink: "#25231f",
   },
   {
-    id: "natt", name: "Natt",
-    off: ["#1b2742", "#111a2e", "#070b14"],
-    on:  ["#2b4573", "#17243f", "#080d18"],
-  },
-  {
-    id: "skog", name: "Skog",
-    off: ["#15332e", "#0d2220", "#060f0e"],
-    on:  ["#1f5348", "#123330", "#071513"],
-  },
-  {
-    id: "soloppgang", name: "Soloppgang",
-    off: ["#3a2032", "#271726", "#110a12"],
-    on:  ["#8a4436", "#4a2230", "#1a0d14"],
-  },
-  {
-    id: "grafitt", name: "Grafitt",
-    off: ["#2a2a2e", "#1c1c20", "#0d0d10"],
-    on:  ["#3e3e45", "#26262b", "#101013"],
-  },
-  {
-    id: "kobber", name: "Kobber",
-    off: ["#3a2a22", "#241a16", "#100b09"],
-    on:  ["#6d4328", "#3b2419", "#16100b"],
-  },
-  /* --- lyse temaer ---------------------------------------------------
-     `light: true` snur tekst- og flatefargene (.hd.light i styles.js).
-     Uten den klassen blir hvit tekst på lys bakgrunn uleselig. */
-  {
-    id: "dagslys", name: "Dagslys", light: true,
-    off: ["#ffffff", "#f3f1ec", "#e6e2da"],
-    on:  ["#fffdf7", "#f8f2e4", "#ece3cf"],
-  },
-  {
-    id: "lin", name: "Lin", light: true,
-    off: ["#faf6ef", "#efe8dc", "#ded4c4"],
-    on:  ["#fdf8ec", "#f5ebd8", "#e7d9bf"],
-  },
-  {
-    id: "tare", name: "Tåke", light: true,
-    off: ["#f4f6f8", "#e8ecf1", "#d7dde5"],
-    on:  ["#f8fafc", "#edf1f6", "#dde4ec"],
-  },
-  {
-    id: "fersken", name: "Fersken", light: true,
-    off: ["#fdf2ec", "#f6e5dc", "#e9d2c5"],
-    on:  ["#fff4ea", "#fbe6d4", "#f0d5bc"],
+    id: "skog", name: "Skog", desc: "Dyp skog og røykglass", light: false,
+    base: "#171b18",
+    off: ["#263027", "#1c211d", "#121613"],
+    on:  ["#263027", "#1c211d", "#121613"],
+    bg: "radial-gradient(90% 70% at 0% 0%, #263027 0%, transparent 56%), radial-gradient(80% 70% at 100% 100%, #2b231b 0%, transparent 62%), linear-gradient(155deg, #1c211d 0%, #121613 100%)",
+    accent: "#c9d5ba",
+    accentInk: "#1d221c",
+    cardon: "rgba(201,213,186,.14)",
+    ink: "#f4f1e9",
   },
 ];
 
-/** Er dette et lyst tema? Styrer `.hd.light`. */
-export function isLightBg(bgId) {
-  return !!(BACKGROUNDS.find((x) => x.id === bgId) || {}).light;
+export const BACKGROUNDS = THEMES;
+
+const LEGACY_LIGHT = new Set(["dagslys", "lin", "tare", "fersken"]);
+
+export function themeOf(id) {
+  return THEMES.find((x) => x.id === id) || THEMES[0];
 }
 
-export function bgCss(bgId, warmth) {
-  const b = BACKGROUNDS.find((x) => x.id === bgId) || BACKGROUNDS[0];
-  const t = clamp(warmth, 0, 1);
-  const mix = (a, c) => {
-    const p = (x) => [parseInt(x.slice(1, 3), 16), parseInt(x.slice(3, 5), 16), parseInt(x.slice(5, 7), 16)];
-    const A = p(a), C = p(c);
-    const r = A.map((v, i) => Math.round(v + (C[i] - v) * t));
-    return "#" + r.map((v) => v.toString(16).padStart(2, "0")).join("");
-  };
-  const c0 = mix(b.off[0], b.on[0]);
-  const c1 = mix(b.off[1], b.on[1]);
-  const c2 = mix(b.off[2], b.on[2]);
-  return (
-    `radial-gradient(128% 96% at 26% 8%, ${c0} 0%, ${c1} 44%, ${c2} 100%),` +
-    `radial-gradient(70% 60% at 88% 96%, ${c0}55 0%, ${c2}00 70%)`
-  );
+/** Gjør om gamle bakgrunns-id-er til de to nye temaene. */
+export function normalizeTheme(id) {
+  if (THEMES.some((x) => x.id === id)) return id;
+  return LEGACY_LIGHT.has(id) ? "kalk" : "skog";
+}
+
+/** Er dette et lyst tema? Styrer `.hd.light`. */
+export function isLightBg(bgId) {
+  return !!themeOf(bgId).light;
+}
+
+export function bgCss(bgId) {
+  return themeOf(bgId).bg;
 }
 
 /** Én flat farge som matcher bunnen av gradienten.
  *  Brukes på vertselementet, der en gradient ikke kan strekkes riktig. */
-export function bgBase(bgId, warmth) {
-  const b = BACKGROUNDS.find((x) => x.id === bgId) || BACKGROUNDS[0];
-  const t = clamp(warmth || 0, 0, 1);
-  const p = (x) => [parseInt(x.slice(1, 3), 16), parseInt(x.slice(3, 5), 16), parseInt(x.slice(5, 7), 16)];
-  const A = p(b.off[2]), C = p(b.on[2]);
-  return "#" + A.map((v, i) => Math.round(v + (C[i] - v) * t))
-    .map((v) => v.toString(16).padStart(2, "0")).join("");
+export function bgBase(bgId) {
+  return themeOf(bgId).base;
 }
 
 /* ------------------------------------------------------------- settings */
 
 export const DEFAULTS = {
-  layout: "sidebar",         // grid | sidebar | list | focus   (enhetsspesifikk)
-  card: "cream",
-  accent: "amber",
-  background: "plomme",
-  bgAuto: true,
+  layout: "start",           // start | sidebar   (enhetsspesifikk)
+  card: "sage",              // beholdes for gamle lagringer; temaet styrer fargen
+  accent: "olive",           // beholdes for gamle lagringer; temaet styrer fargen
+  background: "kalk",
+  bgAuto: false,
+  cameraMaps: false,         // kart- og nettbrettkameraer skjules som standard
   clock24: true,
   showSeconds: false,
   /* Skjermsparer. SEKUNDER, ikke minutter - den gamle nøkkelen `screensaver`
@@ -546,6 +512,10 @@ export class Store {
 
     for (const k of DEVICE_KEYS) if (dev[k] !== undefined) merged[k] = dev[k];
     this.data = merged;
+    /* To layouts og to temaer i 2.5. Gamle valg må ikke etterlate brukeren
+       i en layout eller fargepalett som ikke finnes lenger. */
+    if (!["start", "sidebar"].includes(this.data.layout)) this.data.layout = "start";
+    this.data.background = normalizeTheme(this.data.background);
     return this.data;
   }
 
@@ -1022,7 +992,9 @@ export function resolveConfig(hass, server, yaml = {}) {
     securityActions: pick(srv.security_actions, y.security_actions, []),
     deeplinks: pick(srv.deeplinks, y.deeplinks, []),
     batteryWarn: srv.battery_warn ?? y.battery_warn ?? 25,
-    pages: pick(srv.pages, y.pages, ["start", "home", "rooms", "media", "house", "energy", "security", "attention"]),
+    /* Tom liste er et gyldig valg: da har Mer ingen undersider. */
+    pages: srv.pages !== undefined && srv.pages !== null ? srv.pages
+      : y.pages !== undefined && y.pages !== null ? y.pages : ["media", "house"],
   };
 
   /* Planter og maskiner: oppdages med mindre brukeren har satt en egen liste. */
@@ -1047,6 +1019,11 @@ export function resolveConfig(hass, server, yaml = {}) {
 /* ---------------------------------------------------------------- model */
 
 const PRIMARY_DOMAINS = new Set(["vacuum", "camera", "media_player", "siren", "climate", "humidifier", "lawn_mower", "water_heater"]);
+
+/* Kameraer fra robotstøvsugere, nettbrett og lignende er kart eller
+   kameraet i nettbrettet — ikke sikkerhetskameraer. De drukner de ekte
+   kameraene, så de er av som standard og kan slås på i innstillingene. */
+const CAMERA_NOISE_PLATFORMS = new Set(["dreame_vacuum", "neato", "fully_kiosk"]);
 const CHILD_DOMAINS = new Set(["switch", "select", "number", "button", "text", "time", "fan", "light"]);
 const CONTROL_DOMAINS = new Set(["light", "switch", "input_boolean", "cover", "climate", "fan", "humidifier", "media_player", "lock", "vacuum", "siren", "script"]);
 const SENSOR_DC_TEMP = new Set(["temperature"]);
@@ -1199,6 +1176,8 @@ export function buildModel(hass, cfg, store) {
       continue;
     }
     if (d === "camera") {
+      const reg = ents[eid];
+      if (!store?.get?.("cameraMaps") && CAMERA_NOISE_PLATFORMS.has(reg?.platform)) continue;
       if (keep(eid) && !isDead(st)) bucket[aid].cameras.push(eid);
       continue;
     }

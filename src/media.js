@@ -8,10 +8,10 @@
  */
 import {
   h, ICON, clamp, domainOf, nameOf, shortName, isDead, fmtNum, mmss, areaIdOf,
-} from "./core.js?v=2.4.3";
-import { ic, mediaPos, stateText } from "./controls.js?v=2.4.3";
-import { sheet } from "./overlays.js?v=2.4.3";
-import { appleTVs } from "./appletv.js?v=2.4.3";
+} from "./core.js?v=2.5.0";
+import { ic, mediaPos, stateText } from "./controls.js?v=2.5.0";
+import { sheet } from "./overlays.js?v=2.5.0";
+import { appleTVs } from "./appletv.js?v=2.5.0";
 
 /* ------------------------------------------------------- grupper/spillere */
 
@@ -250,7 +250,7 @@ export function groupSheet(ctx, model) {
     const vol = ms.attributes.volume_level != null ? Math.round(ms.attributes.volume_level * 100) : null;
     return `
     <div class="lrow" style="cursor:default">
-      <div class="ic" ${inGroup ? `style="background:var(--accent);color:#2a2008"` : ""}>
+      <div class="ic" ${inGroup ? `style="background:var(--accent);color:var(--accent-ink)"` : ""}>
         ${ic(isLeader ? "mdi:speaker-wireless" : ICON.media)}</div>
       <div class="txt">
         <div class="nm">${h(nameOf(hass, ctx.cfg, eid))}${isLeader ? " · leder" : ""}</div>

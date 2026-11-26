@@ -4,14 +4,14 @@
 import {
   h, ICON, fmtNum, isDead, domainOf, nameOf,
   shortName, clamp,
-} from "./core.js?v=2.4.3";
+} from "./core.js?v=2.5.0";
 import {
   roomTile, deviceTile, deviceBig, mediaTile, securityTile, securityAlerts,
   climateTile, powerTile, sceneChip, listGroup, listRow,
   stateText, supportsBig, ic, isCardOn, anyTile, cardWrap,
-} from "./controls.js?v=2.4.3";
-import { weatherIcon, weatherText } from "./weather.js?v=2.4.3";
-import { quickRow, HOME_CHIPS, roomChipScope } from "./quick.js?v=2.4.3";
+} from "./controls.js?v=2.5.0";
+import { weatherIcon, weatherText } from "./weather.js?v=2.5.0";
+import { quickRow, HOME_CHIPS, roomChipScope } from "./quick.js?v=2.5.0";
 
 const NB_DAYS = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
 const NB_MON = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];
@@ -355,66 +355,68 @@ export function viewHomeList(ctx, model) {
     ${empty}`;
 }
 
-export function viewHomeSidebar(ctx, model) {
-  const { store } = ctx;
-  const now = ctx.now;
-  const homeIds = visibleHomeTiles(ctx, model);
-  /* Et tomt «Oversikt» er bare støy: har brukeren ikke lagt noe der, skal
-     verken menyvalget eller siden vises — men den må komme tilbake så snart
-     man går inn i redigeringsmodus, ellers er den umulig å fylle. */
-  const showOverview = ctx.edit || homeIds.length > 0 ||
-    visibleScenes(ctx, model).length > 0;
-  const sel = showOverview ? (ctx.sidebarSel || "overview")
-    : (ctx.sidebarSel && ctx.sidebarSel !== "overview"
-       ? ctx.sidebarSel : model.rooms[0]?.id || "overview");
-
-  const navRooms = model.rooms.map((r) => `
+/* Én sidemeny for alle sider i Oversikt. Den ligger fast til venstre, slik
+   at rom og sider ikke flytter seg når man bytter layout eller side. */
+export function sidebarShell(ctx, model, body, sel = "overview") {
+  const theme = ctx.store.get("background");
+  const moreViews = ["more", "media", "house", "energy", "attention"];
+  const roomNav = model.rooms.map((r) => `
     <div class="navitem ${sel === r.id ? "sel" : ""}" data-act="sbnav" data-r="${h(r.id)}">
       ${ic(r.icon)}<span>${h(r.name)}</span>
       ${r.lightsOn ? `<span class="cnt">${r.lightsOn}</span>` : ""}
     </div>`).join("");
-
-  const agendaN = ctx.agenda?.todayCount ?? 0;
-  const todoN = ctx.agenda?.todoPending ?? 0;
-
-  const body = sel === "overview"
-    ? `<div class="lbl">Deckify</div>
-       <div class="h1" style="margin:3px 0 0">Oversikt</div>
-       ${sceneStrip(ctx, model)}
-       ${homeGrid(ctx, model)}`
-    : roomBody(ctx, model, model.rooms.find((r) => r.id === sel));
-
   return `
   <div class="sbwrap">
     <div class="sidebar">
-      <div class="datestr">${h(dateString(now))}</div>
-      <div class="clock mono" style="font-size:44px">${timeString(now, store.get("clock24"), false)}</div>
-      <div class="hdrbtns" style="margin-top:10px">
-        <div class="rbtn" data-act="overlay" data-o="calendar">${ic(ICON.calendar)}${agendaN ? `<span class="badge">${agendaN}</span>` : ""}</div>
-        <div class="rbtn" data-act="overlay" data-o="todo">${ic(ICON.todo)}${todoN ? `<span class="badge">${todoN}</span>` : ""}</div>
+      <div class="sidebrand">
+        <div class="brandmark"><i></i><i></i><i></i><i></i></div>
+        <div><b>Deckify</b><span>Hjem</span></div>
       </div>
-      <div class="divider"></div>
-      <div class="lbl">Hjemstatus</div>
-      <div class="h2" style="margin:4px 0 12px;font-size:19px">${h(model.lightsOn.length ? `${model.lightsOn.length} lys på hjemme` : "Alle lys er av")}</div>
-      ${quickRow(ctx, model, HOME_CHIPS, null, { column: true })}
-      <div class="divider"></div>
-      <div class="navlist">
-        ${showOverview ? `<div class="navitem ${sel === "overview" ? "sel" : ""}" data-act="sbnav" data-r="overview">${ic(ICON.home)}<span>Oversikt</span></div>` : ""}
-        ${navRooms}
+      <div class="sidenav">
+        <div class="navitem ${sel === "overview" ? "sel" : ""}" data-act="sbnav" data-r="overview">
+          ${ic(ICON.home)}<span>Hjem</span></div>
+        ${model.rooms.length ? `<div class="navlabel">Rom</div>${roomNav}` : ""}
+        <div class="navitem ${sel === "security" ? "sel" : ""}" data-act="nav" data-v="security">
+          ${ic(ICON.shield)}<span>Sikkerhet</span></div>
+        <div class="navitem ${moreViews.includes(sel) ? "sel" : ""}" data-act="nav" data-v="more">
+          ${ic("mdi:dots-horizontal")}<span>Mer</span></div>
+      </div>
+      <div class="sidefoot">
+        <div class="navitem" data-act="overlay" data-o="settings">${ic(ICON.cog)}<span>Tilpass</span></div>
+        ${ctx.canWrite ? `<div class="themeswitch">
+          <div class="ts ${theme === "kalk" ? "sel" : ""}" data-act="settheme" data-t="kalk">Lys</div>
+          <div class="ts ${theme === "skog" ? "sel" : ""}" data-act="settheme" data-t="skog">Mørk</div>
+        </div>` : ""}
       </div>
     </div>
-    <div class="sbmain">
-      <header style="margin-bottom:10px">
-        <div style="flex:1"></div>
-        <div class="hdrright">
-          ${store.get("showWeather") ? weatherPill(ctx) : ""}
-          ${store.get("showPeople") ? peopleHtml(ctx) : ""}
-          <div class="rbtn" data-act="search" title="Søk" aria-label="Søk">${ic("mdi:magnify")}</div><div class="rbtn" data-act="overlay" data-o="settings" title="Innstillinger" aria-label="Innstillinger">${ic(ICON.cog)}</div>
-        </div>
-      </header>
-      ${body}
-    </div>
+    <div class="sbmain">${body}</div>
   </div>`;
+}
+
+function sidebarMainHead(ctx) {
+  return `<header style="margin-bottom:10px">
+    <div style="flex:1"></div>
+    <div class="hdrright">
+      ${ctx.store.get("showWeather") ? weatherPill(ctx) : ""}
+      ${ctx.store.get("showPeople") ? peopleHtml(ctx) : ""}
+      <div class="rbtn" data-act="search" title="Søk" aria-label="Søk">${ic("mdi:magnify")}</div>
+    </div>
+  </header>`;
+}
+
+export function viewHomeSidebar(ctx, model) {
+  const sel = ctx.sidebarSel || "overview";
+  const room = model.rooms.find((r) => r.id === sel);
+  const body = sel === "overview" || !room
+    ? `${sidebarMainHead(ctx)}
+       <div class="h1" style="margin:0 0 3px">Hjem</div>
+       <div class="sub" style="margin-bottom:16px">${h(model.lightsOn.length
+         ? `${model.lightsOn.length} lys på i ${model.roomsWithLightOn} rom`
+         : "Alle lys er av")} · ${h(model.rooms.length)} rom</div>
+       ${sceneStrip(ctx, model)}
+       ${homeGrid(ctx, model)}`
+    : `${sidebarMainHead(ctx)}${roomBody(ctx, model, room)}`;
+  return sidebarShell(ctx, model, body, sel);
 }
 
 function weatherPill(ctx) {
@@ -482,13 +484,16 @@ export function viewHomeFocus(ctx, model) {
 export function visibleRoomTiles(ctx, room) {
   const scope = "room:" + room.id;
   const saved = ctx.store.data.order[scope];
+  /* Kameraer er vanlige, redigerbare kort. Før 2.5 lå de utenfor rutenettet
+     og kunne derfor verken skjules eller fjernes fra et rom. */
+  const pool = [...room.controls, ...room.cameras];
   let ids;
   if (saved) {
     const keep = saved.filter((e) => ctx.hass.states[e]);
     ids = ctx.cfg.autoFill
-      ? [...keep, ...room.controls.filter((e) => !keep.includes(e))]
+      ? [...keep, ...pool.filter((e) => !keep.includes(e))]
       : keep;
-  } else ids = ctx.cfg.autoFill ? room.controls : [];
+  } else ids = ctx.cfg.autoFill ? pool : [];
   return ids.filter((e) => !ctx.store.isHidden(scope, e));
 }
 
@@ -517,17 +522,12 @@ export function roomBody(ctx, model, room) {
   const chips = scenes.length ? `
     <div class="scenes"><div class="lbl">Scener</div>
       <div class="scenestrip">${scenes.slice(0, ctx.edit ? 24 : 8).map((e) => sceneChip(ctx, e, room.name, "room:" + room.id)).join("")}</div></div>` : "";
-  const cams = room.cameras.length ? `
-    <div class="grid" style="grid-auto-rows:auto;margin-top:14px">
-      ${room.cameras.map((e) => cameraCard(ctx, e, room.name)).join("")}
-    </div>` : "";
   return `
     <div class="lbl">${h(room.lightIds.length ? `${room.lightsOn} av ${room.lightIds.length} lys på` : `${room.controls.length} enheter`)}</div>
     <div class="h1" style="margin:3px 0 0">${h(room.name)}</div>
     ${quickRow(ctx, model, roomChipScope(room.id), room)}
     ${chips}
-    ${roomGrid(ctx, room)}
-    ${cams}`;
+    ${roomGrid(ctx, room)}`;
 }
 
 function cameraCard(ctx, eid, roomName) {
@@ -548,23 +548,10 @@ export function viewRooms(ctx, model) {
     </div>`).join("");
 
   if (ctx.layout === "sidebar") {
-    const nav = model.rooms.map((r) => `
-      <div class="navitem ${r.id === sel ? "sel" : ""}" data-act="selroom" data-r="${h(r.id)}">
-        ${ic(r.icon)}<span>${h(r.name)}</span>${r.lightsOn ? `<span class="cnt">${r.lightsOn}</span>` : ""}
-      </div>`).join("");
-    return `
-    <div class="sbwrap">
-      <div class="sidebar">
-        <div class="lbl">Rom</div>
-        <div class="navlist">${nav}</div>
-      </div>
-      <div class="sbmain">
-        <header style="margin-bottom:10px"><div style="flex:1"></div>
-          <div class="hdrright">${weatherPill(ctx)}<div class="rbtn" data-act="search" title="Søk" aria-label="Søk">${ic("mdi:magnify")}</div><div class="rbtn" data-act="overlay" data-o="settings" title="Innstillinger" aria-label="Innstillinger">${ic(ICON.cog)}</div></div>
-        </header>
-        ${roomBody(ctx, model, room)}
-      </div>
-    </div>`;
+    return sidebarShell(ctx, model,
+      `${sidebarMainHead(ctx)}${room ? roomBody(ctx, model, room)
+        : `<div class="empty">Fant ikke rommet.</div>`}`,
+      room?.id || "overview");
   }
   if (ctx.layout === "list") {
     return `
@@ -572,6 +559,15 @@ export function viewRooms(ctx, model) {
       <div class="roomrail" style="margin-top:18px">${rail}</div>
       <div class="listcols">${room
         ? listGroup(ctx, room, false, visibleRoomTiles(ctx, room)) : ""}</div>`;
+  }
+  if (ctx.layout === "start") {
+    return `<div class="roomtopline">
+      <div class="backbtn" data-act="nav" data-v="home">${ic(ICON.left)}<span>Hjem</span></div>
+      <div class="hdrright">
+        <div class="rbtn" data-act="search" title="Søk" aria-label="Søk">${ic("mdi:magnify")}</div>
+        <div class="rbtn" data-act="overlay" data-o="settings" title="Innstillinger" aria-label="Innstillinger">${ic(ICON.cog)}</div>
+      </div>
+    </div>${roomBody(ctx, model, room)}`;
   }
   return `
     ${header(ctx, model)}
@@ -670,6 +666,37 @@ export function viewSecurity(ctx, model) {
     ${camHtml}`;
 }
 
+/* --------------------------------------------------------------- mer */
+
+export function viewMore(ctx, model) {
+  const pages = ctx.cfg.pages || [];
+  const defs = [
+    ["media", "Media", "Høyttalere, grupper, favoritter og fjernkontroller.", ICON.media],
+    ["energy", "Energi", "Strømpris, forbruk og hva som bruker mest nå.", ICON.bolt],
+    ["house", "Huset", "Temperatur, maskiner, planter og batterier.", "mdi:home-thermometer-outline"],
+    ["attention", "Trenger tilsyn", "Alt som ber om en handling, samlet på ett sted.", "mdi:bell-badge-outline"],
+  ];
+  const cards = defs.filter(([id]) => pages.includes(id)).map(([id, name, desc, icon]) => `
+    <div class="card" data-act="nav" data-v="${id}">
+      <div class="top"><div class="ic">${ic(icon)}</div><div class="corner">${ic(ICON.right)}</div></div>
+      <div class="bottom"><div class="nm">${h(name)}</div><div class="st">${h(desc)}</div></div>
+    </div>`).join("");
+  const custom = (ctx.store.get("dockPages") || []).map((p) => `
+    <div class="card" data-act="nav" data-v="page:${h(p.id)}">
+      <div class="top"><div class="ic">${ic(p.icon || "mdi:star-outline")}</div><div class="corner">${ic(ICON.right)}</div></div>
+      <div class="bottom"><div class="nm">${h(p.name)}</div><div class="st">${h(p.entities.length)} enheter</div></div>
+    </div>`).join("");
+  const all = cards + custom;
+  return `
+    ${header(ctx, model)}
+    <div class="lbl" style="margin-top:22px">Deckify</div>
+    <div class="h1" style="margin:3px 0 0">Mer</div>
+    <div class="sub" style="margin:6px 0 18px">Sider som ikke trenger plass i hovedmenyen.</div>
+    ${all
+      ? `<div class="grid moregrid">${all}</div>`
+      : `<div class="empty">${ic("mdi:dots-horizontal")}Ingen flere sider er slått på. Du kan slå dem på i Tilpass → Sider.</div>`}`;
+}
+
 /* ----------------------------------------------------------- egne sider */
 
 export function viewCustom(ctx, model, page) {
@@ -714,8 +741,6 @@ export function dockItems(ctx) {
 }
 
 export function dock(ctx, model) {
-  const items = dockItems(ctx);
-
   if (ctx.edit) {
     const scope = ctx.editScope || "home";
     /* tell skjulte i ALLE skop som vises, ikke bare det aktive */
@@ -735,15 +760,23 @@ export function dock(ctx, model) {
       <div class="ebtn done" data-act="toggleedit">${ic(ICON.check)}<span>Ferdig</span></div>
     </div>`;
   }
-  const att = ctx.attention || { urgent: 0, action: 0 };
   const editFab = ctx.canEdit ? `<div id="editfab" data-act="toggleedit">
     ${ic(ICON.pencil)}<span class="t">Rediger</span></div>` : "";
-  return `<div id="dock">${items.map((i) => `
-    <div class="dockitem ${ctx.view === i.id ? "sel" : ""}" data-act="nav" data-v="${h(i.id)}">
-      ${ic(i.icon)}${i.id === "attention" && att.action
-        ? `<b class="badge ${att.urgent ? "crit" : ""}">${att.urgent || att.action}</b>` : ""}
-      <span class="t">${h(i.label)}</span></div>`).join("")}</div>
-  ${editFab}`;
+  /* Oversikt har sidemeny. Startskjerm har en liten bunnmeny med de fire
+     tingene man faktisk trenger; resten ligger under Mer. */
+  if (ctx.layout === "sidebar") return editFab;
+  const more = ["more", "media", "house", "energy", "attention"].includes(ctx.view);
+  const home = ctx.view === "home" || ctx.view === "rooms";
+  return `<div id="dock">
+    <div class="dockitem ${home ? "sel" : ""}" data-act="nav" data-v="home">
+      ${ic(ICON.home)}<span class="t">Hjem</span></div>
+    <div class="dockitem ${ctx.view === "security" ? "sel" : ""}" data-act="nav" data-v="security">
+      ${ic(ICON.shield)}<span class="t">Sikkerhet</span></div>
+    <div class="dockitem ${more ? "sel" : ""}" data-act="nav" data-v="more">
+      ${ic("mdi:dots-horizontal")}<span class="t">Mer</span></div>
+    <div class="dockitem" data-act="overlay" data-o="settings" title="Tilpass" aria-label="Tilpass">
+      ${ic(ICON.cog)}</div>
+  </div>${editFab}`;
 }
 
 /* ------------------------------------------------------------ skjermsparer */

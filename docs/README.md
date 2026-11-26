@@ -12,5 +12,7 @@
 - [Troubleshooting](troubleshooting.md) — blank panel, old cached modules,
   missing entities and permissions.
 - [Development](development.md) — architecture, tests, build and release.
+- [Design mockup](mockups/tablet-redesign.html) — interactive draft of the
+  Startskjerm and Oversikt layouts.
 
 The README is the project overview. These pages are the reference.

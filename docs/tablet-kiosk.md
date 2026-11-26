@@ -1,7 +1,8 @@
 # Tablet and kiosk setup
 
 Deckify is designed for a **landscape wall tablet**. A 1280×800 or larger
-screen gives the sidebar layout room to breathe; 1920×1200 is even better.
+screen gives both Startskjerm and Oversikt room to breathe; 1920×1200 is even
+better.
 
 ![Deckify on a landscape tablet](tablet-overview.png)
 
@@ -10,13 +11,13 @@ screen gives the sidebar layout room to breathe; 1920×1200 is even better.
 1. Add a Deckify dashboard and enable auto-fill, or build the layout manually.
 2. Open the panel at `http://<home-assistant>:8123/<url-path>` — for example
    `/deckify`.
-3. Open **Settings → Layout** and choose **Sidebar** or **Start screen**.
+3. Open **Settings → Layout** and choose **Startskjerm** or **Oversikt**.
 4. Open **Settings → Navigation**:
    - enable **Hide Home Assistant sidebar**
    - optionally enable **Hide Home Assistant top bar**
    - choose a screensaver delay
-5. Open **Settings → Appearance** and pick a background and contrast level
-   that works in the room.
+5. Open **Settings → Appearance** and choose **Kalk** or **Skog** for the
+   room.
 6. Arrange the dashboard once, then use the tablet in kiosk mode.
 
 The sidebar/top-bar choices are scoped to the Deckify card: they are removed
@@ -65,7 +66,8 @@ screensaver off to avoid double behavior.
 - Tap a card to toggle or open its default action.
 - Long-press a card for the detail panel.
 - Drag the handle on a card in edit mode to reorder it.
-- Swipe sideways in the Focus layout to move between rooms.
+- Use the room list in Oversikt, or the room cards in Startskjerm, to move
+  between rooms.
 - Use **Escape** to close sheets if a keyboard is connected.
 
 ## 24-hour soak test
@@ -91,8 +93,8 @@ keeps its current modules until it is reloaded.
   Lovelace card, and that the option was saved for this device.
 - **Screensaver never starts:** it only runs in the panel; check the delay and
   that the browser tab is visible.
-- **Layout looks cramped:** switch to Grid on a small tablet, or reduce card
-  sizes. Sidebar is intended for wider screens.
+- **Layout looks cramped:** use Startskjerm on a small tablet, or reduce card
+  sizes. Oversikt is intended for wider screens.
 - **Touch drag feels unreliable:** use the drag handle in edit mode; a swipe
   on the card itself is reserved for scrolling.
 - **Old design after an update:** hard-refresh the page once.

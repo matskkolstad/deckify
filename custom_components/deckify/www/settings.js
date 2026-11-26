@@ -3,17 +3,14 @@
  * navigasjon, egne sider og system.
  */
 import {
-  h, ICON, CARD_COLORS, ACCENT_COLORS, BACKGROUNDS, bgCss, nameOf, shortName,
-} from "./core.js?v=2.4.3";
-import { ic } from "./controls.js?v=2.4.3";
-import { SAVER_DELAYS } from "./saver.js?v=2.4.3";
+  h, ICON, THEMES, nameOf, shortName,
+} from "./core.js?v=2.5.0";
+import { ic } from "./controls.js?v=2.5.0";
+import { SAVER_DELAYS } from "./saver.js?v=2.5.0";
 
 const LAYOUTS = [
-  { id: "start", name: "Startskjerm", desc: "Stor klokke, vær og ett informativt kvadrat per rom. Best som førsteskjerm.", prev: "start" },
-  { id: "grid", name: "Rutenett", desc: "Kort side ved side som fyller skjermen.", prev: [[1, 1, 1], [1, 1, 1]] },
-  { id: "sidebar", name: "Sidekolonne", desc: "Klokke, status og rom i en kolonne. Best på liggende nettbrett.", prev: "sidebar" },
-  { id: "list", name: "Liste", desc: "Rader med brytere, gruppert per rom.", prev: "list" },
-  { id: "focus", name: "Fokus", desc: "Ett rom per skjerm, i stor skrift. Sveip sidelengs.", prev: "focus" },
+  { id: "start", name: "Startskjerm", desc: "Oversikt først: klokke, vær og romkort. Rom åpnes som egen side.", prev: "start" },
+  { id: "sidebar", name: "Oversikt", desc: "Fast sidemeny med rom og sider. Bra når du styrer mye.", prev: "sidebar" },
 ];
 
 function layoutPreview(kind) {
@@ -119,7 +116,7 @@ function paneLayout(ctx) {
   </div>
   <div class="setsec">
     <h4>Layout</h4>
-    <p>Rekkefølgen og de skjulte kortene du setter gjelder i alle fem. Media, Sikkerhet, Scener og egne sider følger valget. Lagres per enhet.</p>
+    <p>Rekkefølgen og de skjulte kortene du setter gjelder i begge. Media, Sikkerhet, Scener og egne sider følger valget. Lagres per enhet.</p>
     <div class="layoutcards">${cards}</div>
   </div>`;
 }
@@ -128,59 +125,24 @@ function paneLayout(ctx) {
 
 function paneLook(ctx, model) {
   const s = ctx.store;
-  const card = CARD_COLORS.find((c) => c.id === s.get("card")) || CARD_COLORS[0];
-  const acc = ACCENT_COLORS.find((c) => c.id === s.get("accent")) || ACCENT_COLORS[0];
-
-  const preview = `
-    <div style="display:grid;place-items:center;padding:22px 0 26px">
-      <div class="card on" style="width:208px;height:158px;background:${card.hex};color:#221d19;position:relative;pointer-events:none">
-        <div class="top">
-          <div class="ic" style="background:${acc.hex};color:#2a2008">${ic(ICON.light)}</div>
-          <div class="pw" style="background:rgba(0,0,0,.07);color:#221d19">${ic(ICON.power)}</div>
-        </div>
-        <div class="bottom">
-          <div class="nm">Stue</div>
-          <div class="st" style="color:rgba(34,29,25,.52)">75 %</div>
-          <div class="bar" style="margin-top:8px;height:22px;background:rgba(34,29,25,.1)">
-            <div class="fill" style="width:75%;background:${acc.hex}"></div></div>
-        </div>
-      </div>
-    </div>`;
-
-  const cardSw = CARD_COLORS.map((c) => `
-    <div class="cswatch ${c.id === card.id ? "sel" : ""}" style="background:${c.hex}"
-         title="${h(c.name)}" data-act="setcard" data-c="${h(c.id)}">
-      ${c.id === card.id ? ic(ICON.check) : ""}</div>`).join("");
-
-  const accSw = ACCENT_COLORS.map((c) => `
-    <div class="cswatch ${c.id === acc.id ? "sel" : ""}" style="background:${c.hex}"
-         title="${h(c.name)}" data-act="setaccent" data-c="${h(c.id)}">
-      ${c.id === acc.id ? ic(ICON.check) : ""}</div>`).join("");
-
-  const bgCells = BACKGROUNDS.map((b) => `
-    <div class="bgcell ${s.get("background") === b.id ? "sel" : ""}"
-         style="background:${bgCss(b.id, 0.45)}" data-act="setbg" data-b="${h(b.id)}">
-      <span class="n">${h(b.name)}</span></div>`).join("");
-
+  const cur = s.get("background");
+  const cards = THEMES.map((t) => `
+    <div class="themechoice ${cur === t.id ? "sel" : ""}" data-act="settheme" data-t="${h(t.id)}">
+      <div class="themeprev ${h(t.id)}"></div>
+      <b>${h(t.name)}</b><span>${h(t.desc)}</span>
+    </div>`).join("");
   return `
-  ${preview}
   <div class="setsec">
-    <h4>Kortfarge</h4><p>Myk flate på kort som er på.</p>
-    <div class="swatchrow">${cardSw}</div>
+    <h4>Tema</h4>
+    <p>To ferdige temaer med samme kontrastnivå. Bakgrunn, flater, tekst og aksent hører sammen.</p>
+    <div class="themegrid">${cards}</div>
   </div>
   <div class="setsec">
-    <h4>Aksentfarge</h4><p>Sterk farge på ikoner, prikker, slidere og tellere.</p>
-    <div class="swatchrow">${accSw}</div>
-  </div>
-  <div class="setsec">
-    <h4>Bakgrunn</h4><p>Endrer seg med lyset hjemme.</p>
-    <div class="bgrow">${bgCells}</div>
-    ${toggleRow(ctx, "bgAuto", "Varm opp bakgrunnen", "Bakgrunnen blir varmere jo flere lys som er på.")}
-  </div>
-  <div class="setsec">
-    <h4>Lesbarhet</h4><p>Skru på hvis tekst og kortkanter flyter sammen med bakgrunnen.</p>
-    ${toggleRow(ctx, "hiContrast", "Høy kontrast",
-      "Tettere kortflater, tydeligere kanter og sterkere sekundærtekst.")}
+    <h4>Kontrast</h4>
+    <div class="optrow">
+      <div class="ot"><b>God kontrast i begge temaer</b><span>Hovedtekst og sekundærtekst ligger over WCAG AA. Småetiketter er målt til minst 5:1.</span></div>
+      <span class="sub">Fast</span>
+    </div>
   </div>`;
 }
 
@@ -259,12 +221,9 @@ function paneNav(ctx, model) {
      «Sider»-side), ikke i en lokal skjul-liste. Da er listen positiv:
      ingenting vises før du har skrudd det på. */
   const DOCK_ALL = [
-    ["home", "Hjem", "Rom, scener og kortene du legger inn selv."],
-    ["rooms", "Rom", "Ett rom av gangen med alle enhetene i rommet."],
     ["media", "Media", "Høyttalere, grupper, favoritter og fjernkontroller."],
     ["house", "Huset", "Temperatur, maskiner, planter og batterier."],
     ["energy", "Energi", "Strømpris og forbruk."],
-    ["security", "Sikkerhet", "Røyk, lekkasje, dører og bevegelse."],
     ["attention", "Trenger tilsyn", "Alt som ber om en handling."],
   ];
   const activePages = ctx.cfg.pages || [];
@@ -278,9 +237,9 @@ function paneNav(ctx, model) {
 
   return `
   <div class="setsec">
-    <h4>Sider i menylinja</h4><p>Skru på de sidene du vil ha. De analytiske
-      sidene (Huset, Energi, Sikkerhet, Trenger tilsyn) fyller seg selv med
-      det de finner — derfor er de av til å begynne med.</p>
+    <h4>Sider under Mer</h4><p>Hjem, Rom og Sikkerhet er alltid med i
+      navigasjonen. Her velger du hvilke av de andre sidene som skal ligge
+      under Mer.</p>
     ${dockRows}
   </div>
   <div class="setsec">
@@ -430,6 +389,8 @@ function paneDeck(ctx, model) {
         : "Av: samme oppsett på alle enheter, lagret på tjeneren."}</span></div>
       <div class="sw-toggle ${perDev ? "on" : ""}"><i></i></div>
     </div>
+    ${toggleRow(ctx, "cameraMaps", "Vis kart- og nettbrettkameraer",
+      "Kameraer fra robotstøvsugere og nettbrett er kart eller enhetskameraer, ikke sikkerhetskameraer. De skjules som standard.")}
   </div>
   <div class="setsec">
     <h4>Rom</h4>

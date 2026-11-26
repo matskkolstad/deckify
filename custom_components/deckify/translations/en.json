@@ -95,7 +95,7 @@
       },
       "pages": {
         "title": "Pages",
-        "description": "Which pages the dock shows.",
+        "description": "Which extra pages appear under More. Home, Rooms and Security are always available.",
         "data": {
           "pages": "Pages"
         }

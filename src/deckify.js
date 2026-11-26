@@ -7,38 +7,38 @@
 import {
   instanceOf, resolveConfig, BASE,
   DK_VER, h as hEsc, h, ICON, clamp, domainOf, isOn, isDead, nameOf, buildModel, Store,
-  bgCss, bgBase, isLightBg, CARD_COLORS, ACCENT_COLORS, callSvc, toggleEntity, fireEvent, deepQuery,
+  bgCss, bgBase, isLightBg, themeOf, callSvc, toggleEntity, fireEvent, deepQuery,
   LIGHT_SWATCHES,
-} from "./core.js?v=2.4.3";
-import { cardConfigSheet, cardEntity } from "./cards.js?v=2.4.3";
-import { CSS } from "./styles.js?v=2.4.3";
+} from "./core.js?v=2.5.0";
+import { cardConfigSheet, cardEntity } from "./cards.js?v=2.5.0";
+import { CSS } from "./styles.js?v=2.5.0";
 import {
   viewHomeGrid, viewHomeList, viewHomeSidebar, viewHomeFocus, viewRooms,
-  viewMedia, viewSecurity, viewCustom, dock, visibleScenes, visibleHomeTiles,
-  visibleRoomTiles, header,
-} from "./views.js?v=2.4.3";
-import { saverView } from "./saver.js?v=2.4.3";
+  viewMedia, viewSecurity, viewCustom, viewMore, dock, visibleScenes, visibleHomeTiles,
+  visibleRoomTiles, header, sidebarShell,
+} from "./views.js?v=2.5.0";
+import { saverView } from "./saver.js?v=2.5.0";
 import {
   weatherSheet, calendarSheet, todoSheet, playerSheet, pickerSheet, confirmSheet,
-} from "./overlays.js?v=2.4.3";
-import { settingsSheet } from "./settings.js?v=2.4.3";
-import { morph } from "./morph.js?v=2.4.3";
+} from "./overlays.js?v=2.5.0";
+import { settingsSheet } from "./settings.js?v=2.5.0";
+import { morph } from "./morph.js?v=2.5.0";
 import {
   viewMediaPage, groupSheet, browseSheet, groupable, allPlayers, currentGroups,
-} from "./media.js?v=2.4.3";
-import { detailSheet } from "./detail.js?v=2.4.3";
-import { viewEnergy, viewHouse } from "./pages.js?v=2.4.3";
-import { viewStart } from "./start.js?v=2.4.3";
-import { appleTVSheet, appleTVs, isAppleTV } from "./appletv.js?v=2.4.3";
-import { weatherData } from "./weather.js?v=2.4.3";
-import { searchSheet } from "./search.js?v=2.4.3";
-import { viewAttention, attentionCount } from "./attention.js?v=2.4.3";
-import { ic } from "./controls.js?v=2.4.3";
-import { quickIds, chipRoomOf, quickLabel } from "./quick.js?v=2.4.3";
+} from "./media.js?v=2.5.0";
+import { detailSheet } from "./detail.js?v=2.5.0";
+import { viewEnergy, viewHouse } from "./pages.js?v=2.5.0";
+import { viewStart } from "./start.js?v=2.5.0";
+import { appleTVSheet, appleTVs, isAppleTV } from "./appletv.js?v=2.5.0";
+import { weatherData } from "./weather.js?v=2.5.0";
+import { searchSheet } from "./search.js?v=2.5.0";
+import { viewAttention, attentionCount } from "./attention.js?v=2.5.0";
+import { ic } from "./controls.js?v=2.5.0";
+import { quickIds, chipRoomOf, quickLabel } from "./quick.js?v=2.5.0";
 
 console.info(`%c DECKIFY %c ${DK_VER} `,
-  "background:#f5b731;color:#2a2008;font-weight:700;border-radius:3px 0 0 3px",
-  "background:#3c1f36;color:#fff;border-radius:0 3px 3px 0");
+  "background:#4e5d46;color:#f8f5ee;font-weight:700;border-radius:3px 0 0 3px",
+  "background:#c9d5ba;color:#1d221c;border-radius:0 3px 3px 0");
 
 const HOLD_MS = 450;
 
@@ -242,6 +242,12 @@ class DeckifyCard extends HTMLElement {
   _startTimers() {
     this._active = true;
     if (!this._tick) this._tick = setInterval(() => this._onTick(), 1000);
+    /* HA kan rendre side- og topplinjen på nytt etter en hash-navigasjon.
+       Kioskvalgene skal overleve det, uten at brukeren må inn i Innstillinger. */
+    if (!this._kioskTimer) this._kioskTimer = setInterval(() => {
+      if (this._store?.get("hideSidebar") || this._store?.get("hideHeader"))
+        this._applyKiosk();
+    }, 1000);
     if (!this._dataTimer) {
       this._dataTimer = setInterval(() => {
         this._loadCalendar(); this._loadTodo(); this._loadPriceHistory();
@@ -269,6 +275,7 @@ class DeckifyCard extends HTMLElement {
         this._applyUrl();
         this._st.overlay = null;
         this._render();
+        setTimeout(() => this._applyKiosk(), 120);
       };
       window.addEventListener("popstate", this._popListener);
     }
@@ -287,6 +294,7 @@ class DeckifyCard extends HTMLElement {
   _stopTimers() {
     this._active = false;
     clearInterval(this._tick); this._tick = null;
+    clearInterval(this._kioskTimer); this._kioskTimer = null;
     clearInterval(this._dataTimer); this._dataTimer = null;
     try { this._ro?.disconnect(); } catch (e) {}
     this._ro = null;
@@ -402,12 +410,12 @@ class DeckifyCard extends HTMLElement {
 
   _ctx(model) {
     const s = this._store;
-    const card = CARD_COLORS.find((c) => c.id === s.get("card")) || CARD_COLORS[0];
-    const acc = ACCENT_COLORS.find((c) => c.id === s.get("accent")) || ACCENT_COLORS[0];
+    const theme = themeOf(s.get("background"));
     return {
       hass: this._hass, cfg: this._cfg, store: s, version: DK_VER,
-      now: new Date(), accent: acc.hex, cardColor: card.hex,
-      layout: this._phone && s.get("layout") === "sidebar" ? "grid" : s.get("layout"),
+      now: new Date(), accent: theme.accent, cardColor: theme.cardon,
+      ink: theme.ink, accentInk: theme.accentInk, theme: theme.id,
+      layout: this._phone && s.get("layout") === "sidebar" ? "start" : s.get("layout"),
       view: this._st.view, edit: this._st.edit,
       canEdit: s.writable || s.perDevice,
       canWrite: s.writable || s.perDevice,
@@ -449,7 +457,9 @@ class DeckifyCard extends HTMLElement {
 
     /* CSS-variabler */
     this._root.style.setProperty("--accent", ctx.accent);
+    this._root.style.setProperty("--accent-ink", ctx.accentInk);
     this._root.style.setProperty("--cardon", ctx.cardColor);
+    this._root.style.setProperty("--ink", ctx.ink);
     this._root.classList.toggle("edit", !!this._st.edit);
     this._root.classList.toggle("embedded", true);
     this._root.classList.toggle("cardmode", !this._isPanel);
@@ -483,7 +493,7 @@ class DeckifyCard extends HTMLElement {
     const html = this._viewHtml(ctx, model);
     if (html !== this._cache.body) { morph(this._bodyEl, html); this._cache.body = html; }
 
-    const dh = this._st.view === "home" && ctx.layout === "focus" && false ? "" : dock(ctx, model);
+    const dh = dock(ctx, model);
     if (dh !== this._cache.dock) { morph(this._dockEl, dh); this._cache.dock = dh; }
 
     /* overlegg */
@@ -532,6 +542,9 @@ class DeckifyCard extends HTMLElement {
 
   _viewHtml(ctx, model) {
     const v = this._st.view;
+    const inSidebar = ctx.layout === "sidebar";
+    const wrap = (html, sel = "more") => inSidebar
+      ? sidebarShell(ctx, model, html, sel) : html;
     if (v === "home") {
       const l = ctx.layout;
       if (l === "start") return viewStart(ctx, model);
@@ -541,16 +554,17 @@ class DeckifyCard extends HTMLElement {
       return viewHomeGrid(ctx, model);
     }
     if (v === "rooms") return viewRooms(ctx, model);
-    if (v === "media") return viewMediaPage(ctx, model, header(ctx, model));
-    if (v === "security") return viewSecurity(ctx, model);
-    if (v === "attention") return header(ctx, model) + viewAttention(ctx, model);
-    if (v === "energy") return viewEnergy(ctx, model, header(ctx, model));
-    if (v === "house") return viewHouse(ctx, model, header(ctx, model));
+    if (v === "media") return wrap(viewMediaPage(ctx, model, header(ctx, model)));
+    if (v === "security") return wrap(viewSecurity(ctx, model), "security");
+    if (v === "more") return wrap(viewMore(ctx, model), "more");
+    if (v === "attention") return wrap(header(ctx, model) + viewAttention(ctx, model));
+    if (v === "energy") return wrap(viewEnergy(ctx, model, header(ctx, model)));
+    if (v === "house") return wrap(viewHouse(ctx, model, header(ctx, model)));
     if (v.startsWith("page:")) {
       const p = (this._store.get("dockPages") || []).find((x) => "page:" + x.id === v);
-      return p ? viewCustom(ctx, model, p) : `<div class="empty">Siden finnes ikke.</div>`;
+      return wrap(p ? viewCustom(ctx, model, p) : `<div class="empty">Siden finnes ikke.</div>`);
     }
-    return viewHomeGrid(ctx, model);
+    return inSidebar ? viewHomeSidebar(ctx, model) : viewHomeGrid(ctx, model);
   }
 
   /** Tilsyn-telleren går gjennom alle entiteter — cache den i 20 s. */
@@ -907,7 +921,7 @@ class DeckifyCard extends HTMLElement {
     } else if (route === "focus") {
       this._st.view = "home";
       this._st.focusPage = clamp(Number(parts[1]) || 0, 0, 999);
-    } else if (["home", "media", "security", "attention", "energy", "house"].includes(route)) {
+    } else if (["home", "media", "security", "attention", "energy", "house", "more"].includes(route)) {
       this._st.view = route;
     } else if (route === "start") {
       this._st.view = "home";
@@ -926,6 +940,9 @@ class DeckifyCard extends HTMLElement {
       if (push) history.pushState(null, "", url);
       else history.replaceState(null, "", url);
     } catch (e) {}
+    /* HA rydder av og til sine egne side-/topplinjestiler når hash-ruten
+       endres. Sett kioskstilene på plass igjen etter at HA har rendret. */
+    if (push) setTimeout(() => this._applyKiosk(), 120);
   }
 
   _focusPage(d) {
@@ -1241,7 +1258,9 @@ class DeckifyCard extends HTMLElement {
       case "selroom":
         this._st.roomSel = d.r; this._syncUrl(true); this._render(); break;
       case "sbnav":
-        this._st.sidebarSel = d.r; this._syncUrl(true); this._render(); break;
+        this._st.view = "home";
+        this._st.sidebarSel = d.r;
+        this._syncUrl(true); this._render(); break;
       case "focusroom": {
         const i = this._model.rooms.findIndex((r) => r.id === d.r);
         this._st.focusPage = i + 1;
@@ -1659,14 +1678,13 @@ class DeckifyCard extends HTMLElement {
         this._render(); break;
       }
       case "pagetoggle": {
-        const all = ["start", "home", "rooms", "media", "house", "energy",
-                     "security", "attention"];
+        const all = ["media", "house", "energy", "attention"];
         const cur = this._cfg.pages || [];
         const on = d.v === "1";
         /* behold den faste rekkefølgen, uansett hvilken vei man skrur */
         const next = all.filter((p) => on ? (cur.includes(p) || p === d.k)
                                           : (cur.includes(p) && p !== d.k));
-        await this._store.patchServer({ pages: next.length ? next : ["home"] });
+        await this._store.patchServer({ pages: next });
         this._applyServerConfig();
         if (!next.includes(this._st.view)) this._st.view = "home";
         this._cache.body = null; this._cache.dock = null;
@@ -1721,7 +1739,10 @@ class DeckifyCard extends HTMLElement {
 
       /* --- innstillinger --- */
       case "setsec": this._st.setSec = d.s; this._render(); break;
-      case "setlayout": this._store.set("layout", d.l); this._render(); break;
+      case "setlayout":
+        if (["start", "sidebar"].includes(d.l)) this._store.set("layout", d.l);
+        this._render(); break;
+      case "settheme": this._store.set("background", d.t); this._cache.body = null; this._render(); break;
       case "setcard": this._store.set("card", d.c); this._render(); break;
       case "setaccent": this._store.set("accent", d.c); this._render(); break;
       case "setbg": this._store.set("background", d.b); this._render(); break;
@@ -2544,7 +2565,7 @@ class DeckifyPanel extends HTMLElement {
        scrollet videre — under boksen så man Home Assistants egen (hvite)
        bakgrunn. Bruk min-height, og la kortet male bakgrunnen på seg selv. */
     this.shadowRoot.innerHTML =
-      `<style>:host{display:block;min-height:100%;background:var(--deckify-bg,#140b14)}
+      `<style>:host{display:block;min-height:100%;background:var(--deckify-bg,#171b18)}
        deckify-card{display:block;min-height:100vh}</style>`;
   }
 
