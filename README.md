@@ -5,7 +5,7 @@ bare et kort. Flere dashbord side om side i sidemenyen, alt oppdages
 automatisk fra Områder → Enheter → Entiteter, og hvert eneste kort kan
 stilles inn i dashbordet eller fra integrasjonens innstillinger.
 
-[![Validate](https://github.com/matskk/deckify/actions/workflows/validate.yml/badge.svg)](https://github.com/matskk/deckify/actions/workflows/validate.yml)
+[![Validate](https://github.com/matskkolstad/deckify/actions/workflows/validate.yml/badge.svg)](https://github.com/matskkolstad/deckify/actions/workflows/validate.yml)
 [![HACS](https://img.shields.io/badge/HACS-egendefinert-41BDF5.svg)](https://hacs.xyz)
 [![Lisens](https://img.shields.io/badge/lisens-MIT-blue.svg)](LICENSE)
 
