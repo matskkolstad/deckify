@@ -23,6 +23,7 @@ from homeassistant.components import frontend
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
@@ -51,6 +52,10 @@ MODULE_URL = f"{STATIC_URL}/deckify.js?v={VERSION}"
 
 DATA_STORE = f"{DOMAIN}_store"
 DATA_SETUP = f"{DOMAIN}_setup_done"
+
+# Deckify settes bare opp via config entries (ett dashbord per entry). Uten
+# denne erklærer hassfest at `async_setup` mangler et skjema.
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:

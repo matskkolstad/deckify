@@ -13,7 +13,7 @@
           "require_admin": "Kun for administratorer"
         },
         "data_description": {
-          "url_path": "Dashbordet ligger på /<sti>. Små bokstaver, tall, - og _.",
+          "url_path": "Dashbordet ligger på stien du velger. Små bokstaver, tall, - og _.",
           "areas": "Lar du dette stå tomt, finner Deckify alle områder selv."
         }
       }

@@ -13,7 +13,7 @@
           "require_admin": "Admins only"
         },
         "data_description": {
-          "url_path": "Reachable at /<path>. Lowercase letters, digits, - and _.",
+          "url_path": "Reachable at the path you choose. Lowercase letters, digits, - and _.",
           "areas": "Leave empty and Deckify discovers every area automatically."
         }
       }

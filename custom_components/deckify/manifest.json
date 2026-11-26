@@ -2,7 +2,7 @@
   "domain": "deckify",
   "name": "Deckify",
   "codeowners": [
-    "@matskk"
+    "@matskkolstad"
   ],
   "config_flow": true,
   "dependencies": [
