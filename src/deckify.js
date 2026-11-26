@@ -47,7 +47,7 @@ const HOLD_MS = 450;
 const FALLBACK_CFG = {
   entryId: null, title: "Deckify", areas: [], exclude: new Set(), excludeRe: null,
   assign: {}, rename: {}, icons: {}, asLight: new Set(), excludePlatforms: new Set(),
-  confirmPrefix: ["siren.", "lock."], showUnavailable: false,
+  confirmPrefix: ["siren.", "lock."],
   weatherEntity: null, climateEntity: null, outdoorTemp: null, outdoorHum: null,
   powerSensor: null, energySensor: null, priceSensor: null, priceNext: null,
   priceLow: null, priceHigh: null, todoEntity: null, alarmFlag: null,
@@ -102,6 +102,17 @@ class DeckifyCard extends HTMLElement {
     this._busy = false;
     this._lastInput = Date.now();
     this._unsub = [];
+    this._forecastUnsub = [];
+    this._forecastEntity = null;
+    this._active = false;
+    this._cfgSub = false;
+    this._cfgGen = 0;
+    this._forecastGen = 0;
+    this._svcListener = null;
+    this._kioskT = null;
+    this._kioskSb = false;
+    this._hideHeaderEl = null;
+    this._kioskStyle = null;
   }
 
   /* ------------------------------------------------------------- config */
@@ -117,6 +128,12 @@ class DeckifyCard extends HTMLElement {
     /* Midlertidig oppsett helt til serveroppsettet er hentet i _boot(). */
     this._cfg = { ...FALLBACK_CFG, title: c.title || "Deckify" };
     this._cache = {};
+    /* Et Lovelace-kort kan få ny YAML uten å lastes på nytt. Da må cfg og
+       visningen bygges på nytt, ellers står det gamle kortet igjen. */
+    if (this._booted && this._store) {
+      this._applyServerConfig();
+      this._render();
+    }
   }
 
   getCardSize() { return 20; }
@@ -144,26 +161,21 @@ class DeckifyCard extends HTMLElement {
       })(),
     });
     await this._store.load();
-    this._applyServerConfig();
-    this._subscribeConfig();
+    /* Kortet kan ha blitt flyttet ut av DOM-en mens oppsettet ble hentet. */
+    if (!this.isConnected) { this._booting = false; return; }
 
+    this._applyServerConfig();
     this._build();
     this._render();
     this._booted = true;
     this._booting = false;
-    this._tick = setInterval(() => this._onTick(), 1000);
-    this._ro = new ResizeObserver(() => this._scheduleRender());
-    try { this._ro.observe(this); } catch (e) {}
-    this._subscribeForecast();
-    this._loadCalendar();
-    this._loadTodo();
-    this._loadFavorites();
-    this._loadPriceHistory();
-    this._dataTimer = setInterval(() => {
-      this._loadCalendar(); this._loadTodo(); this._loadPriceHistory();
-      this._history = {};
-    }, 5 * 60 * 1000);
+    this._startTimers();
+    this._subscribeConfig();
+    this._refreshDataSources();
     this._applyKiosk();
+    if (this._store.loadError) {
+      this._toast("Kunne ikke hente Deckify-oppsettet. Sjekk at integrasjonen er lastet.");
+    }
   }
 
   /** Bygg `_cfg` på nytt fra serveroppsettet + kortets YAML + autooppdagelse. */
@@ -171,14 +183,30 @@ class DeckifyCard extends HTMLElement {
     this._cfg = resolveConfig(this._hass, this._store.server, this._rawConfig);
     this._cfg.instance = this._instance;
     this._cache = {};
+
+    if (this._cfg.excludeReInvalid && !this._warnedExclude) {
+      this._warnedExclude = true;
+      this._toast("Et av filterene er ugyldig og ble ignorert");
+    } else if (!this._cfg.excludeReInvalid) {
+      this._warnedExclude = false;
+    }
+
+    /* Når oppsettet endres, må værabonnement, kalender og gjøremål følge
+       med. Uten dette fortsatte dashbordet å abonnere på den gamle
+       værenheten helt til siden ble lastet på nytt. */
+    if (this._booted && this._active) this._refreshDataSources();
   }
 
   /** Lytt etter endringer gjort et annet sted — i integrasjonens
       innstillinger, eller fra en annen nettleser. Uten dette viser
       veggnettbrettet gammelt oppsett til siden lastes på nytt. */
   _subscribeConfig() {
-    if (!this._hass?.connection) return;
+    if (!this._hass?.connection || this._cfgSub) return;
+    this._cfgSub = true;
+    const gen = ++this._cfgGen;
+    const self = this;
     this._hass.connection.subscribeEvents((ev) => {
+      if (gen !== this._cfgGen) return;
       const id = ev?.data?.entry_id;
       if (id && this._store.entryId && id !== this._store.entryId) return;
       clearTimeout(this._cfgT);
@@ -186,23 +214,115 @@ class DeckifyCard extends HTMLElement {
         await this._store.load();
         this._applyServerConfig();
         this._render();
+        if (this._store.loadError) {
+          this._toast("Kunne ikke oppdatere Deckify-oppsettet");
+        }
       }, 350);
     }, "deckify_updated").then(
-      (unsub) => this._unsub.push(unsub),
-      () => {},
+      function (unsub) {
+        /* Rakk elementet å bli frakoblet mens abonnementet ble opprettet? */
+        if (gen !== self._cfgGen || !self._cfgSub) {
+          try { unsub(); } catch (e) {}
+          return;
+        }
+        self._unsub.push(unsub);
+      },
+      () => { if (gen === this._cfgGen) this._cfgSub = false; },
     );
   }
 
+  _startTimers() {
+    this._active = true;
+    if (!this._tick) this._tick = setInterval(() => this._onTick(), 1000);
+    if (!this._dataTimer) {
+      this._dataTimer = setInterval(() => {
+        this._loadCalendar(); this._loadTodo(); this._loadPriceHistory();
+        this._loadFavorites();
+        this._history = {};
+      }, 5 * 60 * 1000);
+    }
+    if (!this._ro) {
+      this._ro = new ResizeObserver(() => this._scheduleRender());
+      try { this._ro.observe(this); } catch (e) {}
+    }
+    if (!this._svcListener) {
+      this._svcListener = (e) => {
+        const d = e.detail || {};
+        const ent = d.data?.entity_id;
+        const label = Array.isArray(ent)
+          ? `${ent.length} enheter`
+          : ent ? nameOf(this._hass, this._cfg, ent) : "";
+        this._toast(`Kunne ikke utføre ${d.service || "handlingen"}${label ? " på " + label : ""}`);
+      };
+      window.addEventListener("deckify-service-error", this._svcListener);
+    }
+  }
+
+  _stopTimers() {
+    this._active = false;
+    clearInterval(this._tick); this._tick = null;
+    clearInterval(this._dataTimer); this._dataTimer = null;
+    try { this._ro?.disconnect(); } catch (e) {}
+    this._ro = null;
+    if (this._svcListener) {
+      window.removeEventListener("deckify-service-error", this._svcListener);
+      this._svcListener = null;
+    }
+    clearTimeout(this._cfgT); this._cfgT = null;
+    clearTimeout(this._kioskT); this._kioskT = null;
+    clearTimeout(this._toastT); this._toastT = null;
+    this._st.toast = null;
+
+    /* Ikke la kioskvalgene henge igjen på Home Assistant etter at panelet
+       er forlatt. */
+    if (this._kioskSb) {
+      const ha = document.querySelector("home-assistant");
+      if (ha) fireEvent(ha, "hass-dock-sidebar", { dock: "auto" });
+      try { fireEvent(window, "hass-dock-sidebar", { dock: "auto" }); } catch (e) {}
+      this._kioskSb = false;
+    }
+    if (this._hideHeaderEl) {
+      try { this._hideHeaderEl.style.removeProperty("display"); } catch (e) {}
+      this._hideHeaderEl = null;
+    }
+    if (this._kioskStyle) {
+      try { this._kioskStyle.textContent = ""; } catch (e) {}
+      this._kioskStyle = null;
+    }
+
+    this._clearForecast();
+    for (const u of this._unsub) { try { u(); } catch (e) {} }
+    this._unsub = [];
+    this._cfgSub = false;
+    this._cfgGen++;
+    try { this._store?.flush?.(); } catch (e) {}
+  }
+
+  _resume() {
+    if (!this._booted || !this._hass) return;
+    this._startTimers();
+    this._subscribeConfig();
+    this._refreshDataSources();
+    this._applyKiosk();
+    this._render();
+  }
+
+  _refreshDataSources() {
+    if (!this._active) return;
+    this._subscribeForecast();
+    this._loadCalendar();
+    this._loadTodo();
+    this._loadPriceHistory();
+    this._loadFavorites();
+  }
+
   connectedCallback() {
-    if (this._hass && !this._root) this._boot();
+    if (this._hass && !this._root) { this._boot(); return; }
+    if (this._booted) this._resume();
   }
 
   disconnectedCallback() {
-    clearInterval(this._tick);
-    clearInterval(this._dataTimer);
-    try { this._ro?.disconnect(); } catch (e) {}
-    for (const u of this._unsub) { try { u(); } catch (e) {} }
-    this._unsub = [];
+    this._stopTimers();
   }
 
   /* --------------------------------------------------------------- build */
@@ -444,26 +564,49 @@ class DeckifyCard extends HTMLElement {
 
   /* ----------------------------------------------------------- datakilder */
 
+  _clearForecast() {
+    this._forecastGen++;
+    for (const u of this._forecastUnsub) { try { u(); } catch (e) {} }
+    this._forecastUnsub = [];
+    this._forecastEntity = null;
+    this._forecast = { hourly: [], daily: [] };
+  }
+
   async _subscribeForecast() {
     const eid = this._cfg.weatherEntity;
-    if (!eid || !this._hass.connection) return;
+    if (eid === this._forecastEntity && this._forecastUnsub.length) return;
+    this._clearForecast();
+    const gen = this._forecastGen;
+    this._forecastEntity = eid;
+    if (!eid || !this._hass?.connection || !this._active) return;
     for (const type of ["hourly", "daily"]) {
       try {
         const un = await this._hass.connection.subscribeMessage(
           (msg) => {
+            if (gen !== this._forecastGen || this._cfg.weatherEntity !== eid) return;
             this._forecast[type] = msg.forecast || [];
             if (this._st.overlay === "weather") this._render();
           },
           { type: "weather/subscribe_forecast", forecast_type: type, entity_id: eid }
         );
-        this._unsub.push(un);
+        if (gen !== this._forecastGen || !this._active || this._cfg.weatherEntity !== eid) {
+          try { un(); } catch (e) {}
+          return;
+        }
+        this._forecastUnsub.push(un);
       } catch (e) { console.warn("[Deckify] værvarsel", type, e); }
     }
   }
 
   async _loadCalendar() {
-    const cals = this._store?.get("calendars") || this._cfg.calendars;
-    if (!cals?.length) return;
+    const saved = this._store?.get("calendars");
+    const cals = saved === null || saved === undefined ? this._cfg.calendars : saved;
+    if (!cals?.length) {
+      this._calendar = { events: [], calendars: [] };
+      this._agenda.todayCount = 0;
+      this._render();
+      return;
+    }
     const now = new Date();
     const from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const to = new Date(now.getFullYear(), now.getMonth() + 2, 1);
@@ -495,8 +638,14 @@ class DeckifyCard extends HTMLElement {
   }
 
   async _loadTodo() {
-    const eid = this._store?.get("todoList") || this._cfg.todoEntity;
-    if (!eid) return;
+    const eid = this._store?.get("todoList") ?? this._cfg.todoEntity;
+    if (!eid) {
+      this._agenda.todoItems = [];
+      this._agenda.todoPending = 0;
+      this._agenda.todoOverdue = 0;
+      this._render();
+      return;
+    }
     try {
       const res = await this._hass.callWS({ type: "todo/item/list", entity_id: eid });
       const items = res?.items || [];
@@ -522,23 +671,46 @@ class DeckifyCard extends HTMLElement {
   _applyKiosk() {
     const hideSb = this._store.get("hideSidebar");
     const hideHd = this._store.get("hideHeader");
-    if (hideSb) fireEvent(this, "hass-dock-sidebar", { dock: "always_hidden" });
+
+    /* «auto» gir sidemenyen tilbake til HAs egen oppførsel når brukeren
+       skrur kioskvalget av. Uten dette ble sidefeltet stående skjult. */
+    if (hideSb) {
+      fireEvent(this, "hass-dock-sidebar", { dock: "always_hidden" });
+      this._kioskSb = true;
+    } else if (this._kioskSb) {
+      fireEvent(this, "hass-dock-sidebar", { dock: "auto" });
+      this._kioskSb = false;
+    }
+
     const apply = () => {
-      const root = deepQuery(document.querySelector("home-assistant")?.shadowRoot, "hui-root");
-      const sr = root?.shadowRoot;
-      if (!sr) return false;
-      let st = sr.getElementById("deckify-kiosk");
-      if (!st) {
-        st = document.createElement("style");
-        st.id = "deckify-kiosk";
-        sr.appendChild(st);
+      if (!this._active) return;
+      const host = document.querySelector("home-assistant")?.shadowRoot;
+      const header = deepQuery(host, "app-header");
+      if (header) {
+        if (hideHd) header.style.setProperty("display", "none", "important");
+        else header.style.removeProperty("display");
+        if (hideHd) this._hideHeaderEl = header;
+        else if (this._hideHeaderEl === header) this._hideHeaderEl = null;
       }
-      st.textContent = hideHd
-        ? ".header, app-header, .toolbar { display:none !important } #view { min-height:100vh !important; padding-top:0 !important }"
-        : "";
-      return true;
+      const root = deepQuery(host, "hui-root");
+      const sr = root?.shadowRoot;
+      if (sr) {
+        let st = sr.getElementById("deckify-kiosk");
+        if (!st) {
+          st = document.createElement("style");
+          st.id = "deckify-kiosk";
+          sr.appendChild(st);
+        }
+        st.textContent = hideHd
+          ? ".header, app-header, .toolbar { display:none !important } #view { min-height:100vh !important; padding-top:0 !important }"
+          : "";
+        this._kioskStyle = st;
+      }
+      return !!(header || sr);
     };
-    if (!apply()) setTimeout(apply, 1200);
+    if (apply()) return;
+    clearTimeout(this._kioskT);
+    this._kioskT = setTimeout(() => { this._kioskT = null; apply(); }, 1200);
   }
 
   /* ------------------------------------------------------------ hendelser */
@@ -798,11 +970,13 @@ class DeckifyCard extends HTMLElement {
         case "more-info": fireEvent(this, "hass-more-info", { entityId: eid }); break;
         case "run": {
           const dom = domainOf(eid);
-          if (dom === "scene") callSvc(this._hass, "scene", "turn_on", { entity_id: eid });
-          else if (dom === "script") callSvc(this._hass, "script", "turn_on", { entity_id: eid });
-          else if (dom === "automation") callSvc(this._hass, "automation", "trigger", { entity_id: eid });
-          else callSvc(this._hass, dom, "press", { entity_id: eid });
-          this._toast("Kjørte " + nameOf(this._hass, this._cfg, eid));
+          const p = dom === "scene" ? callSvc(this._hass, "scene", "turn_on", { entity_id: eid })
+            : dom === "script" ? callSvc(this._hass, "script", "turn_on", { entity_id: eid })
+            : dom === "automation" ? callSvc(this._hass, "automation", "trigger", { entity_id: eid })
+            : callSvc(this._hass, dom, "press", { entity_id: eid });
+          p.then((ok) => {
+            if (ok) this._toast("Kjørte " + nameOf(this._hass, this._cfg, eid));
+          });
           break;
         }
         case "navigate": this._navigate(cc.navigate); break;
@@ -816,8 +990,8 @@ class DeckifyCard extends HTMLElement {
             catch (err) { this._toast("Tjenestedata er ikke gyldig JSON"); break; }
           }
           if (eid && !data.entity_id) data.entity_id = eid;
-          callSvc(this._hass, dom, name, data);
-          this._toast(svc + " sendt");
+          callSvc(this._hass, dom, name, data)
+            .then((ok) => { if (ok) this._toast(svc + " sendt"); });
           break;
         }
         default: break;
@@ -939,17 +1113,17 @@ class DeckifyCard extends HTMLElement {
       case "secaction": {
         const run = () => callSvc(this._hass,
           domainOf(d.e) === "input_boolean" ? "input_boolean" : "input_button",
-          domainOf(d.e) === "input_boolean" ? "turn_on" : "press", { entity_id: d.e });
+          domainOf(d.e) === "input_boolean" ? "turn_on" : "press", { entity_id: d.e })
+          .then((ok) => { if (ok) this._toast(d.title + " sendt"); });
         if (d.confirm) {
           this._st.confirm = {
             title: d.title + "?",
-            text: "Dette lager faktisk lyd i sirenene og på Sonos-høyttalerne i noen sekunder.",
+            text: "Dette lager faktisk lyd i sirener og høyttalere i noen sekunder.",
             ok: "Kjør testen", run,
           };
           this._st.overlay = "confirm"; this._render();
         } else {
           run();
-          this._toast(d.title + " sendt");
         }
         break;
       }
@@ -1136,16 +1310,15 @@ class DeckifyCard extends HTMLElement {
         break;
       }
       case "atvapp":
-        callSvc(this._hass, "media_player", "select_source", { entity_id: d.e, source: d.v });
-        this._toast("Starter " + d.v);
+        callSvc(this._hass, "media_player", "select_source", { entity_id: d.e, source: d.v })
+          .then((ok) => { if (ok) this._toast("Starter " + d.v); });
         break;
       case "atvlink": {
         const link = (this._cfg.deeplinks || [])[Number(d.i)];
         if (!link) break;
         callSvc(this._hass, "media_player", "play_media", {
           entity_id: d.e, media_content_type: "url", media_content_id: link.url,
-        });
-        this._toast("Åpner " + link.name);
+        }).then((ok) => { if (ok) this._toast("Åpner " + link.name); });
         break;
       }
       case "searchroom":
@@ -1371,7 +1544,7 @@ class DeckifyCard extends HTMLElement {
         this._cache.dock = null; this._render(); break;
       }
       case "togglecal": {
-        const cur = new Set(this._store.get("calendars") || this._cfg.calendars);
+        const cur = new Set(this._store.get("calendars") ?? this._cfg.calendars);
         cur.has(d.e) ? cur.delete(d.e) : cur.add(d.e);
         this._store.set("calendars", [...cur]);
         this._loadCalendar(); this._render(); break;
@@ -1641,7 +1814,10 @@ class DeckifyCard extends HTMLElement {
   /** Strømpris siste døgn, én verdi per time. */
   async _loadPriceHistory() {
     const eid = this._cfg.priceSensor;
-    if (!eid) return;
+    if (!eid) {
+      if (this._priceHistory.length) { this._priceHistory = []; this._render(); }
+      return;
+    }
     const start = new Date(Date.now() - 24 * 3600e3).toISOString();
     try {
       const res = await this._hass.callApi("GET",
@@ -1743,11 +1919,12 @@ class DeckifyCard extends HTMLElement {
     if (!eid || !id) return;
     callSvc(this._hass, "media_player", "play_media", {
       entity_id: eid, media_content_id: id, media_content_type: type || "music",
-    }).then(() => {
+    }).then((ok) => {
+      if (!ok) return;
       this._toast(`Spiller${title ? " \u00ab" + title + "\u00bb" : ""} p\u00e5 ${nameOf(this._hass, this._cfg, eid)}`);
       this._st.overlay = null;
       setTimeout(() => this._render(), 1500);
-    }).catch((e) => this._toast("Kunne ikke spille: " + (e?.message || e)));
+    });
     this._render();
   }
 
@@ -1761,7 +1938,10 @@ class DeckifyCard extends HTMLElement {
   /** Sonos-favoritter (og tilsvarende hos andre spillere) til hurtigvalg. */
   async _loadFavorites() {
     const eid = this._defaultTarget();
-    if (!eid) return;
+    if (!eid) {
+      if (this._media.favorites.length) { this._media = { favorites: [] }; this._render(); }
+      return;
+    }
     const ICONS = {
       "object.container.playlistContainer": "mdi:playlist-music",
       "object.item.audioItem.audioBroadcast": "mdi:radio",
@@ -2184,6 +2364,9 @@ class DeckifyPanel extends HTMLElement {
     card.setConfig(cfg);
     this.shadowRoot.appendChild(card);
     this._card = card;
+    /* Panelet kan få `hass` før `panel`; da må kortet få tilstanden med én
+       gang, ellers står det tomt til neste tilstandsendring. */
+    if (this._hass) card.hass = this._hass;
   }
 }
 

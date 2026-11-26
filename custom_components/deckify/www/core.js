@@ -373,8 +373,7 @@ export const DEFAULTS = {
   bgAuto: true,
   clock24: true,
   showSeconds: false,
-  showUnavailable: false,
-  /* Skjermsparer. SEKUNDER, ikke minutter — den gamle nøkkelen `screensaver`
+  /* Skjermsparer. SEKUNDER, ikke minutter - den gamle nøkkelen `screensaver`
      holdt minutter og kunne derfor ikke uttrykke «etter 30 sekunder».
      Delt mellom skjermene, slik at man setter den ett sted. */
   saverSec: 30,              // 0 = av
@@ -492,6 +491,7 @@ export class Store {
     this.server = null;        /* rått dashbordoppsett fra integrasjonen */
     this.writable = false;     /* false for ikke-admin og løse kort */
     this.ready = false;
+    this.loadError = null;
     this._saveT = null;
   }
 
@@ -499,6 +499,7 @@ export class Store {
 
   async load() {
     let res = null;
+    this.loadError = null;
     try {
       res = await this.hass.callWS({
         type: "deckify/config",
@@ -509,8 +510,12 @@ export class Store {
       /* Integrasjonen er ikke installert, eller kortet ligger i et vanlig
          Lovelace-dashbord uten egen entry. Da kjører vi på standardverdier
          og lagrer bare enhetsvalgene lokalt. */
+      this.loadError = String(e?.message || e);
       console.warn("[Deckify] fikk ikke oppsettet fra integrasjonen:", e);
     }
+    /* En forbigående WebSocket-feil skal ikke slette et oppsett som allerede
+       er lastet. Behold det gamle og la neste vellykkede henting oppdatere. */
+    if (this.loadError && this.server) return this.data;
     const srv = (res && res.config) || null;
     this.server = srv;
     if (res && res.entry_id) this.entryId = res.entry_id;
@@ -559,6 +564,13 @@ export class Store {
   queueSave() {
     clearTimeout(this._saveT);
     this._saveT = setTimeout(() => this.save(), 400);
+  }
+
+  /** Skriv ventende endringer nå, f.eks. når elementet kobles fra. */
+  async flush() {
+    clearTimeout(this._saveT);
+    this._saveT = null;
+    await this.save();
   }
 
   async save() {
@@ -947,6 +959,10 @@ export function resolveConfig(hass, server, yaml = {}) {
   const y = yaml || {};
   const pick = (a, b, c) => (a !== undefined && a !== null && !(Array.isArray(a) && !a.length) ? a
     : (b !== undefined && b !== null && !(Array.isArray(b) && !b.length) ? b : c));
+  /* Kalendere har en egen sammenslåing: en tom liste betyr «ingen», ikke
+     «ikke satt». Den generelle pick() ville oversett [] og valgt alle. */
+  const pickList = (a, b, c) => (a !== undefined && a !== null ? a
+    : (b !== undefined && b !== null ? b : c));
 
   const sensors = { ...(srv.sensors || {}) };
   const auto = autoDetect(hass);
@@ -957,13 +973,24 @@ export function resolveConfig(hass, server, yaml = {}) {
   const areas = pick(srv.areas, y.areas, []);
   const exclude = pick(srv.exclude, y.exclude, []);
   const patterns = pick(srv.exclude_patterns, y.exclude_patterns, []);
+  let excludeRe = null;
+  let excludeReInvalid = false;
+  if (patterns.length) {
+    try {
+      excludeRe = new RegExp(patterns.join("|"), "i");
+    } catch (e) {
+      excludeReInvalid = true;
+      console.warn("[Deckify] ugyldig exclude-mønster ble ignorert:", e);
+    }
+  }
 
   const cfg = {
     entryId: srv.entry_id || null,
     title: srv.title || y.title || "Deckify",
     areas,
     exclude: new Set(exclude),
-    excludeRe: patterns.length ? new RegExp(patterns.join("|"), "i") : null,
+    excludeRe,
+    excludeReInvalid,
     assign: { ...(y.assign || {}), ...(srv.assign || {}) },
     rename: { ...(y.rename || {}), ...(srv.rename || {}) },
     icons: { ...(y.icons || {}), ...(srv.icons || {}) },
@@ -984,7 +1011,7 @@ export function resolveConfig(hass, server, yaml = {}) {
     priceHigh: sens("price_high"),
     todoEntity: sens("todo"),
     alarmFlag: sens("alarm_flag"),
-    calendars: pick(srv.calendars, y.calendars, auto.calendars || []),
+    calendars: pickList(srv.calendars, y.calendars, auto.calendars || []),
     powerDevices: pick(srv.power_devices, y.power_devices, auto.power_devices || []),
 
     scenesPinned: scenes.pinned || y.featured_scenes || [],
@@ -1102,7 +1129,7 @@ export function areaIdOf(hass, eid) {
  *        rename:{eid:navn}, asLight:Set, excludePlatforms:Set, confirm:Set }
  */
 export function buildModel(hass, cfg, store) {
-  const showDead = store?.get("showUnavailable");
+  const showDead = !!cfg.showUnavailable;
   const areas = hass.areas || {};
   const ents = hass.entities || {};
   const devs = hass.devices || {};
@@ -1374,7 +1401,25 @@ export const CT_STOPS = [2000, 2700, 3400, 4100, 5000, 6500];
 /* ------------------------------------------------------ service-kall */
 
 export function callSvc(hass, domain, service, data) {
-  return hass.callService(domain, service, data);
+  const failed = (err) => {
+    console.warn(`[Deckify] ${domain}.${service} feilet`, err);
+    try {
+      window.dispatchEvent(new CustomEvent("deckify-service-error", {
+        detail: { domain, service, data, message: String(err?.message || err) },
+      }));
+    } catch (e) {}
+    return false;
+  };
+  let p;
+  try {
+    p = hass.callService(domain, service, data);
+  } catch (err) {
+    return Promise.resolve(failed(err));
+  }
+  if (p && typeof p.then === "function") {
+    return p.then(() => true, failed);
+  }
+  return Promise.resolve(p !== false);
 }
 
 export function toggleEntity(hass, eid) {

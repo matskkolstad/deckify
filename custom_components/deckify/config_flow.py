@@ -427,16 +427,7 @@ class DeckifyOptionsFlow(OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         cfg = self._cfg()
-        if user_input is not None:
-            await self._patch(
-                {
-                    "exclude_platforms": user_input.get("exclude_platforms") or [],
-                    "exclude_patterns": user_input.get("exclude_patterns") or [],
-                    "battery_warn": int(user_input.get("battery_warn", 25)),
-                }
-            )
-            return self._done(reload=True)
-
+        errors: dict[str, str] = {}
         text_list = selector.TextSelector(selector.TextSelectorConfig(multiple=True))
         schema = vol.Schema(
             {
@@ -455,7 +446,29 @@ class DeckifyOptionsFlow(OptionsFlow):
                 ),
             }
         )
-        return self.async_show_form(step_id="advanced", data_schema=schema)
+
+        if user_input is not None:
+            patterns = user_input.get("exclude_patterns") or []
+            for pattern in patterns:
+                try:
+                    re.compile(pattern)
+                except re.error:
+                    errors["exclude_patterns"] = "invalid_pattern"
+                    break
+
+            if not errors:
+                await self._patch(
+                    {
+                        "exclude_platforms": user_input.get("exclude_platforms") or [],
+                        "exclude_patterns": patterns,
+                        "battery_warn": int(user_input.get("battery_warn", 25)),
+                    }
+                )
+                return self._done(reload=True)
+
+        return self.async_show_form(
+            step_id="advanced", data_schema=schema, errors=errors
+        )
 
     # --- nullstill ----------------------------------------------------------
 

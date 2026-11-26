@@ -28,6 +28,9 @@
     }
   },
   "options": {
+    "error": {
+      "invalid_pattern": "Ett av regex-mønstrene er ugyldig. Sjekk de avanserte filtrene."
+    },
     "step": {
       "init": {
         "title": "Innstillinger for Deckify",

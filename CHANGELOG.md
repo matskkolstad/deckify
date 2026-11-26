@@ -24,6 +24,22 @@ Alle merkbare endringer i Deckify. Formatet følger
   viser. Frakoblede røyk- og lekkasjesensorer blir kritiske varsler.
 - Innstillinger og redigering skjules eller gjøres skrivebeskyttet for brukere
   som ikke er administrator, i stedet for at endringene stille forsvinner.
+- Ugyldige regex-filtre valideres i integrasjonens innstillinger og ignoreres
+  trygt i frontend. En dårlig regel gjør ikke lenger hele dashbordet blankt.
+- `show_unavailable` har nå én kilde: integrasjonens innstillinger. Valget i
+  dashbordet skriver til samme sted i stedet for en lokal nøkkel som ble
+  ignorert.
+- Tom kalenderliste betyr «ingen kalendere», ikke «alle». Valget overlever
+  lagring og oppdaterer kalenderen med én gang.
+- Vær, kalender, gjøremål, strømpris og medie-favoritter oppdateres når
+  oppsettet endres. Værabonnementet byttes når værenheten byttes.
+- Dashbordet starter klokke, abonnementer og datakilder på nytt når det
+  kobles til igjen, og panelet gir kortet `hass` selv om `panel` kommer sist.
+- Kioskmodus gir sidemenyen tilbake når valget skrus av, og skjuler
+  topplinjen direkte på `app-header` i stedet for bare via `hui-root`.
+- Feilede tjenestekall gir en synlig melding i stedet for bare en stille
+  konsollfeil. En forbigående config-feil sletter ikke lenger et lastet
+  oppsett.
 
 ## [2.3.0]
 

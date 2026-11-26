@@ -28,6 +28,9 @@
     }
   },
   "options": {
+    "error": {
+      "invalid_pattern": "One of the regex patterns is invalid. Check the advanced filters."
+    },
     "step": {
       "init": {
         "title": "Deckify settings",

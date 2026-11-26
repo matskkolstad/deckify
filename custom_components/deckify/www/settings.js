@@ -213,7 +213,11 @@ function paneHome(ctx, model) {
       <div class="ot"><b>Skjulte kort</b><span>${hiddenHome.length} skjult på Hjem</span></div>
       <div class="btn" data-act="unhide" data-scope="home">Vis alle igjen</div>
     </div>
-    ${toggleRow(ctx, "showUnavailable", "Vis utilgjengelige enheter", "Enheter uten kontakt vises nedtonet i stedet for å skjules.")}
+    <div class="optrow" data-act="cfgtoggle" data-k="show_unavailable"
+         data-v="${ctx.cfg.showUnavailable ? "" : "1"}">
+      <div class="ot"><b>Vis utilgjengelige enheter</b><span>Enheter uten kontakt vises nedtonet i stedet for å skjules.</span></div>
+      <div class="sw-toggle ${ctx.cfg.showUnavailable ? "on" : ""}"><i></i></div>
+    </div>
   </div>`;
 }
 
@@ -323,7 +327,7 @@ function paneNav(ctx, model) {
 function paneSystem(ctx, model) {
   const s = ctx.store;
   const cals = ctx.cfg.calendars || [];
-  const selCals = s.get("calendars") || cals;
+  const selCals = s.get("calendars") ?? cals;
   const calPicks = cals.map((e) => `
     <div class="pick ${selCals.includes(e) ? "sel" : ""}" data-act="togglecal" data-e="${h(e)}">
       ${ic(selCals.includes(e) ? ICON.check : ICON.plus)}<span>${h(nameOf(ctx.hass, ctx.cfg, e))}</span></div>`).join("");
