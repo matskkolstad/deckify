@@ -1,184 +1,206 @@
-# Endringslogg
+# Changelog
 
-Alle merkbare endringer i Deckify. Formatet følger
-[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), og versjonene
-[semantisk versjonering](https://semver.org/lang/no/).
+All notable changes to Deckify. The format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
+[semantic versioning](https://semver.org/).
+
+## [Unreleased]
+
+### Changed
+
+- Documentation is now in English and split into focused pages under
+  `docs/`: getting started, configuration, tablet and kiosk, Lovelace card,
+  privacy, troubleshooting and development.
+- README, `info.md` and `CONTRIBUTING.md` are rewritten in English.
+- New 1280×800 landscape tablet screenshots for the overview, a room, the
+  security page and settings.
 
 ## [2.4.3] - 2026-11-26
 
-### Rettet
+### Fixed
 
-- Vanlige brukere prøvde å abonnere på `deckify_updated` og fikk
-  `Unauthorized` i Home Assistant-loggen. Abonnementet opprettes nå bare for
-  administratorer; andre får oppdatert visningen ved neste sidelast.
+- Regular users tried to subscribe to `deckify_updated` and received
+  `Unauthorized` in the Home Assistant log. The subscription is now created
+  only for administrators; other users get an updated view on the next page
+  load.
 
 ## [2.4.2] - 2026-11-26
 
-### Rettet
+### Fixed
 
-- «Deckify som startside» leser og skriver HAs `userData.defaultPanel` i
-  stedet for det utgåtte `hass.defaultPanel`. Bryteren viser nå riktig
-  «Aktiv nå»/«Ikke aktiv», og kan slås av og på igjen.
+- “Deckify as start page” reads and writes HA's `userData.defaultPanel`
+  instead of the retired `hass.defaultPanel`. The switch now reports
+  “Active now”/“Not active” correctly and can be turned off and on again.
 
 ## [2.4.1] - 2026-11-26
 
-### Rettet
+### Fixed
 
-- Værpilla i header viser nå Open-Meteo-reserven når den valgte værenheten
-  er `unavailable`, i stedet for «–° unavailable».
-- `custom:deckify-card` holder bunnmeny, redigeringsknapp, ark og varsel
-  innenfor kortet i et vanlig Lovelace-dashbord. Tidligere lå de fast over
-  hele Home Assistant-siden.
-- «Skjul Home Assistants sidemeny» bruker nå en stil som bare lever så lenge
-  Deckify-kortet er montert. Den henger ikke lenger igjen på andre dashbord
-  etter at HA har lagret sidefeltvalget globalt.
-- Værabonnementet starter ikke mot en værenhet som er `unavailable` eller
-  mangler, og slutter dermed å fylle konsollen med gjentatte advarsler.
-- Versjonsteksten i innstillingene sier at værfallet kan bruke Open-Meteo.
+- The weather pill in the header now shows the Open-Meteo fallback when the
+  selected weather entity is `unavailable`, instead of “–° unavailable”.
+- `custom:deckify-card` keeps the bottom dock, edit button, sheets and toasts
+  inside the card in a regular Lovelace dashboard. They used to be fixed over
+  the whole Home Assistant page.
+- “Hide Home Assistant sidebar” now applies only while the Deckify card is
+  mounted. It no longer sticks to other dashboards after HA has saved the
+  sidebar choice globally.
+- The weather subscription is not started for a weather entity that is
+  `unavailable` or missing, so it stops filling the console with repeated
+  warnings.
+- The version text in settings mentions that the weather fallback can use
+  Open-Meteo.
 
 ## [2.4.0] - 2026-11-26
 
-### Lagt til
+### Added
 
-- **Førstegangsskjerm.** Et tomt dashbord viser nå «Kom i gang» med valget
-  mellom å fylle det automatisk fra Home Assistant eller bygge det selv.
-- **Dype lenker og historikk.** Visning, rom, egne sider og fokus-side legges
-  i hash-URL-en. Refresh beholder visningen, og nettleserens tilbakeknapp går
-  til forrige Deckify-visning.
-- Tastaturnavigasjon: `Escape` lukker ark, `Tab` holdes inne i åpne ark, og
-  klikkbare flater kan aktiveres med Enter eller mellomrom.
-- Snarvei fra dashbordinnstillingene til integrasjonens globale innstillinger.
-- `custom:deckify-card` kan peke på et bestemt Deckify-dashbord med
-  `dashboard: <url-sti>` i kortets YAML.
-- CI kjører nå Node-tester og render-testen med et syntetisk HA-øyeblikksbilde.
+- **Onboarding screen.** An empty dashboard now shows “Get started” with a
+  choice between filling it automatically from Home Assistant or building it
+  yourself.
+- **Deep links and history.** View, room, custom pages and focus page are
+  stored in the hash URL. Refresh keeps the view, and the browser back button
+  returns to the previous Deckify view.
+- Keyboard navigation: `Escape` closes sheets, `Tab` stays inside open
+  sheets, and clickable surfaces can be activated with Enter or Space.
+- A shortcut from dashboard settings to the integration's global settings.
+- `custom:deckify-card` can target a specific Deckify dashboard with
+  `dashboard: <url-path>` in the card YAML.
+- CI now runs the Node tests and the render test with a synthetic Home
+  Assistant snapshot.
 
-### Endret
+### Changed
 
-- **«Nullstill» er delt i to.** «Nullstill layout» nullstiller bare
-  rekkefølge, skjulte kort, størrelser, grupper og kortinnstillinger. Rom,
-  sensorer, filtre, sider, scener og farger beholdes. «Nullstill alt» gjør det
-  fortsatt mulig å nullstille hele dashbordet, men med en tydelig advarsel.
-  Integrasjonens «Nullstill layout» bruker samme trygge variant.
-- Informasjonskort for sensorer, binærsensorer, personer, vær, tall, valg og
-  tekst åpner detaljpanelet ved vanlig trykk. Knapper bruker `press` i stedet
-  for en av/på-tjeneste som ikke finnes.
-- Skjermspareren starter etter 5 minutter som standard, og bare i
-  paneldashbordet — ikke i et vanlig Lovelace-kort. Den vekkes ikke mens fanen
-  er skjult.
-- Høydemål bruker `100dvh` der nettleseren støtter det, slik at bunnmenyen
-  ikke forsvinner bak iOS-verktøylinjen.
-- Enhetsvelgerens store, sorterte liste bygges først når den faktisk trengs.
-  Vanlige tilstandsoppdateringer slipper dermed å sortere alle entiteter.
-- `custom:deckify-card` registreres nå av en liten `register.js`. Den tunge
-  dashbordmodulen lastes først når kortet faktisk brukes, ikke på hver
-  Home Assistant-side for alle brukere.
+- **“Reset” is split in two.** “Reset layout” resets only order, hidden
+  cards, sizes, groups and card settings. Rooms, sensors, filters, pages,
+  scenes and colours are kept. “Reset all” still resets the whole dashboard,
+  but with a clear warning. The integration's “Reset layout” uses the same
+  safe variant.
+- Information cards for sensors, binary sensors, people, weather, numbers,
+  selects and text open the detail panel on a normal tap. Buttons use `press`
+  instead of a non-existent on/off service.
+- The screensaver starts after 5 minutes by default, and only in the panel
+  dashboard — not in a regular Lovelace card. It does not wake while the tab
+  is hidden.
+- Height measurement uses `100dvh` where the browser supports it, so the
+  bottom dock does not disappear behind the iOS toolbar.
+- The device picker's large sorted list is built only when it is actually
+  needed. Regular state updates no longer sort every entity.
+- `custom:deckify-card` is now registered by a small `register.js`. The heavy
+  dashboard module loads only when the card is actually used, not on every
+  Home Assistant page for every user.
 
-### Rettet
+### Fixed
 
-- **Sikkerhetsvarsler er globale.** Røyk, gass, kullos, lekkasje og dør/vindu
-  vises også når sensoren mangler område eller ligger i et rom dashbordet ikke
-  viser. Frakoblede røyk- og lekkasjesensorer blir kritiske varsler.
-- Innstillinger og redigering skjules eller gjøres skrivebeskyttet for brukere
-  som ikke er administrator, i stedet for at endringene stille forsvinner.
-- Ugyldige regex-filtre valideres i integrasjonens innstillinger og ignoreres
-  trygt i frontend. En dårlig regel gjør ikke lenger hele dashbordet blankt.
-- `show_unavailable` har nå én kilde: integrasjonens innstillinger. Valget i
-  dashbordet skriver til samme sted i stedet for en lokal nøkkel som ble
-  ignorert.
-- Tom kalenderliste betyr «ingen kalendere», ikke «alle». Valget overlever
-  lagring og oppdaterer kalenderen med én gang.
-- Vær, kalender, gjøremål, strømpris og medie-favoritter oppdateres når
-  oppsettet endres. Værabonnementet byttes når værenheten byttes.
-- Dashbordet starter klokke, abonnementer og datakilder på nytt når det
-  kobles til igjen, og panelet gir kortet `hass` selv om `panel` kommer sist.
-- Kioskmodus gir sidemenyen tilbake når valget skrus av, og skjuler
-  topplinjen direkte på `app-header` i stedet for bare via `hui-root`.
-- Feilede tjenestekall gir en synlig melding i stedet for bare en stille
-  konsollfeil. En forbigående config-feil sletter ikke lenger et lastet
-  oppsett.
-- README forklarer `dashboard: <url-sti>` for Lovelace-kortet i stedet for å
-  love at samme URL-sti alltid virker. Personlige kommentarer er ryddet.
+- **Safety alerts are global.** Smoke, gas, carbon monoxide, leaks and
+  doors/windows are shown even when the sensor has no area or lives in a room
+  the dashboard does not show. Disconnected smoke and leak sensors become
+  critical alerts.
+- Settings and editing are hidden or made read-only for users who are not
+  administrators, instead of silently discarding changes.
+- Invalid regex filters are validated in the integration settings and ignored
+  safely in the frontend. A bad rule no longer blanks the whole dashboard.
+- `show_unavailable` now has one source: the integration settings. The
+  dashboard toggle writes to the same place instead of a local key that was
+  ignored.
+- An empty calendar list means “no calendars”, not “all”. The choice survives
+  saving and updates the calendar immediately.
+- Weather, calendar, to-dos, energy price and media favourites update when
+  the configuration changes. The weather subscription switches when the
+  weather entity switches.
+- The dashboard restarts clock, subscriptions and data sources when it
+  reconnects, and the panel passes `hass` to the card even if `panel` arrives
+  last.
+- Kiosk mode restores the sidebar when the option is turned off, and hides
+  the top bar directly on `app-header` instead of only through `hui-root`.
+- Failed service calls show a visible message instead of only a silent
+  console error. A transient config error no longer deletes a loaded
+  configuration.
+- README explains `dashboard: <url-path>` for the Lovelace card instead of
+  promising that the same URL path always works. Personal comments have been
+  removed.
 
 ## [2.3.0]
 
-### Lagt til
+### Added
 
-- **Skjermsparer med stor klokke.** Starter etter 30 sekunder som standard og
-  kan settes til 30 s, 1, 2, 5, 10 eller 30 minutter — eller av — under
-  *Innstillinger → Skjermsparer*. Viser klokka stort midt på skjermen med
-  dagens dato under, og valgfritt vær, hjemstatus, hva som spilles og neste
-  hendelse i kalenderen. Røyk, lekkasje og åpne dører vises alltid.
-  Ett trykk, tastetrykk eller sveip vekker skjermen.
-- Skjermspareren **følger temaet**: samme bakgrunn og samme farger som
-  dashbordet, også i de lyse temaene.
-- Klokka driver langsomt rundt på skjermen, slik at et veggnettbrett som står
-  på hele døgnet ikke brenner den inn i panelet.
+- **Screensaver with a large clock.** Starts after 30 seconds by default and
+  can be set to 30 s, 1, 2, 5, 10 or 30 minutes — or off — under
+  *Settings → Screensaver*. Shows the time large in the middle of the screen
+  with today's date below, and optionally weather, home status, now playing
+  and the next calendar event. Smoke, leaks and open doors are always shown.
+  A tap, key press or swipe wakes the screen.
+- The screensaver **follows the theme**: the same background and colours as
+  the dashboard, including the light themes.
+- The clock drifts slowly around the screen, so a wall tablet that stays on
+  all day does not burn it into the panel.
 
-### Endret
+### Changed
 
-- Forsinkelsen lagres i **sekunder** (`saverSec`) og er delt mellom alle
-  skjermene. Den gamle nøkkelen `screensaver` holdt hele minutter — og kunne
-  dermed ikke uttrykke «etter 30 sekunder» — og var per enhet. Den er fjernet;
-  hadde du satt en skjermsparer før, må tiden velges på nytt én gang.
-- Skjermspareren starter ikke mens du redigerer dashbordet eller har et
-  innstillingsvindu åpent.
+- The delay is stored in **seconds** (`saverSec`) and is shared by all
+  screens. The old key `screensaver` held whole minutes — and could therefore
+  not express “after 30 seconds” — and was per device. It has been removed;
+  if you had set a screensaver before, choose the delay again once.
+- The screensaver does not start while you are editing the dashboard or have
+  a settings sheet open.
 
 ## [2.2.1]
 
-### Lagt til
+### Added
 
-- **Redigerbare hurtigvalg.** «Skru alt på/av» på Hjem og avlesningene i hvert
-  rom (temperatur, fuktighet, dør, bevegelse, røyk) er nå én rad du kan
-  omrokere, fjerne fra og legge egne brikker i — lys, scener, skript eller
-  sensorer. Egen rad per skjerm: Hjem og hvert rom.
-- **«Høy kontrast»** under *Innstillinger → Utseende → Lesbarhet*: tettere
-  kortflater, tydeligere kanter og sterkere sekundærtekst.
+- **Editable quick tiles.** “Turn everything on/off” on Home and the readings
+  in each room (temperature, humidity, door, motion, smoke) are now one row
+  you can reorder, remove from and add your own tiles to — lights, scenes,
+  scripts or sensors. A separate row per screen: Home and each room.
+- **“High contrast”** under *Settings → Appearance → Readability*: denser card
+  surfaces, clearer borders and stronger secondary text.
 
-### Endret
+### Changed
 
-- Søket i enhetsvelgeren er poengsatt og deler kode med det globale søket.
-  Flere ord må alle treffe, så «soverom lys» funker. Treffene kommer som én
-  sortert liste i stedet for spredt over romoverskrifter, det du har valgt
-  ligger øverst, og feltet har en tøm-knapp.
-- Toppen av enhetsvelgeren følger temaet. Den lå med en hardkodet mørk farge
-  og ble en stor mørk kloss i lyse temaer, med usynlige domeneknapper.
-  Domenerekka ruller sideveis på mobil i stedet for å brekke over fem rader.
-- Sterkere kortflater og kanter i både lys og mørk palett.
-- Avslåtte enheter viser ikke lenger en full, farget slider.
+- The device picker search is scored and shares code with the global search.
+  Multiple words must all match, so “bedroom light” works. Results come as one
+  sorted list instead of being spread across room headings, what you have
+  selected is at the top, and the field has a clear button.
+- The top of the device picker follows the theme. It had a hardcoded dark
+  colour and became a large dark block in light themes, with invisible domain
+  buttons. The domain row scrolls sideways on mobile instead of wrapping over
+  five rows.
+- Stronger card surfaces and borders in both the light and dark palettes.
+- Turned-off devices no longer show a full, coloured slider.
 
-### Rettet
+### Fixed
 
-- **Ikoner satt et par piksler for høyt** i alle sirkler og brikker.
-  Home Assistant setter `--mdc-icon-size` på elementet *inne i* `<ha-icon>`,
-  så verten ble så høy som linjehøyden.
-- Kameranavnet arvet tekstfargen og ble mørk tekst på et svart bilde i lyse
-  temaer.
-- «Oversikt» sto igjen som en tom overskrift når ingenting var lagt inn.
-- `order`, `hidden`, `big`, `seps` og `cards` ble slått sammen rekursivt på
-  tjeneren, og en rekursiv sammenslåing kan aldri fjerne en nøkkel. En
-  nullstilt rekkefølge kom derfor tilbake ved neste innlasting.
+- **Icons sat a couple of pixels too high** in every circle and tile. Home
+  Assistant sets `--mdc-icon-size` on the element *inside* `<ha-icon>`, so the
+  host became as tall as the line height.
+- Camera names inherited the text colour and became dark text on a black
+  image in light themes.
+- “Overview” remained as an empty heading when nothing had been added.
+- `order`, `hidden`, `big`, `seps` and `cards` were merged recursively on the
+  server, and a recursive merge can never remove a key. A reset order
+  therefore came back on the next load.
 
 ## [2.1.1]
 
-### Lagt til
+### Added
 
-- Lyse temaer (Dagslys, Lin, Tåke, Fersken) med egne tekst- og flatefarger.
-- Inngang til Apple TV-fjernkontrollen fra mediasiden og fra mediakortene.
+- Light themes (Daylight, Linen, Fog, Peach) with their own text and surface
+  colours.
+- Access to the Apple TV remote from the media page and from media cards.
 
-### Endret
+### Changed
 
-- Et nytt dashbord er tomt fra start — også fanene. Bare *Hjem* er på.
+- A new dashboard starts empty — including the tabs. Only *Home* is on.
 
-### Rettet
+### Fixed
 
-- Vertselementet malte ikke sin egen bakgrunn, så Home Assistants hvite
-  bakgrunn stakk fram under innholdet.
+- The host element did not paint its own background, so Home Assistant's
+  white background showed through under the content.
 
 ## [2.0.1]
 
-Første versjon som **integrasjon** i stedet for løst Lovelace-kort:
-config flow, flere dashbord med eget punkt i sidemenyen, serverlagret oppsett
-over WebSocket, automatisk oppdagelse av rom/enheter/scener/sensorer, og
-innstillinger per kort (størrelse, info, handlinger, navn, ikon, farge).
+First version as an **integration** instead of a loose Lovelace card: config
+flow, multiple dashboards with their own sidebar entry, server-stored
+configuration over WebSocket, automatic discovery of rooms/devices/scenes/
+sensors, and per-card settings (size, info, actions, name, icon, colour).
 
-Het tidligere **HomeDeck**.
+Previously named **HomeDeck**.

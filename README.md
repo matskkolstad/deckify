@@ -1,174 +1,213 @@
 # Deckify
 
-Et helskjerms hjemdashbord for Home Assistant — som en **integrasjon**, ikke
-bare et kort. Flere dashbord side om side i sidemenyen, alt oppdages
-automatisk fra Områder → Enheter → Entiteter, og hvert eneste kort kan
-stilles inn i dashbordet eller fra integrasjonens innstillinger.
+A full-screen Home Assistant dashboard that builds itself — delivered as an
+**integration**, not just a card.
+
+Deckify discovers your areas, devices, entities, scenes, plants, appliances,
+power meter, energy price, weather, calendars and to-dos from Home Assistant.
+A new dashboard starts intentionally empty; you decide whether Deckify should
+fill it automatically or whether you want to build it yourself.
+
+Built for **landscape wall tablets**, but it works on phones and desktops too.
 
 [![Validate](https://github.com/matskkolstad/deckify/actions/workflows/validate.yml/badge.svg)](https://github.com/matskkolstad/deckify/actions/workflows/validate.yml)
-[![HACS](https://img.shields.io/badge/HACS-egendefinert-41BDF5.svg)](https://hacs.xyz)
-[![Lisens](https://img.shields.io/badge/lisens-MIT-blue.svg)](LICENSE)
+[![HACS](https://img.shields.io/badge/HACS-custom-41BDF5.svg)](https://hacs.xyz)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-![Deckify](docs/oversikt.png)
+![Deckify on a landscape tablet](docs/tablet-overview.png)
 
-## Hva du får
+## Highlights
 
-- **Flere dashbord.** Hver gang du legger til integrasjonen får du et nytt
-  Deckify-dashbord med eget punkt i sidemenyen, egne rom og eget oppsett.
-- **Ingenting er hardkodet.** Rom, enheter, scener, planter, maskiner,
-  strømmåler, pris, vær, kalendere og gjøremål finnes av seg selv. Døper du
-  om scenene i Hue-appen, følger Deckify etter uten at du gjør noe.
-- **Tomt fra start.** Et nytt dashbord er blankt med vilje — du legger inn
-  rom, systemkort og enheter selv. Vil du heller at det fyller seg selv, er
-  det én bryter (*Oppførsel → Fyll dashbordet automatisk*).
-- **Felles eller eget oppsett per skjerm.** Som standard ser nettbrettet,
-  telefonen og PC-en nøyaktig det samme, lagret på tjeneren. Slår du på
-  *Eget oppsett per skjerm*, kan hver enhet ha sin egen rekkefølge, sine
-  skjulte kort og sine farger.
-- **Kortinnstillinger** per kort: størrelse (1×1, 2×1, 1×2, 2×2), hva
-  infoteksten viser, hva trykk / hold / dobbelttrykk gjør (av–på,
-  detaljpanel, HAs infovindu, kjør scene, naviger, kall en tjeneste), eget
-  navn, eget ikon, egen farge og bekreftelse før handling.
-- **Fem layouter:** Startskjerm, Rutenett, Sidekolonne, Liste og Fokus.
-- **Sider:** Hjem, Rom, Media, Huset, Energi, Sikkerhet og «Trenger tilsyn».
-- Dra-og-slipp-redigering som virker med finger, detaljpanel per domene,
-  værvarsel med Open-Meteo som reserve, kalender, gjøremål, globalt søk,
-  medieutforsker med høyttalergruppering og kioskbrytere.
+- **Multiple dashboards.** Add the integration again to get another dashboard
+  with its own sidebar entry, rooms and layout.
+- **Nothing is hardcoded.** Rooms, devices, scenes, plants, appliances, power,
+  price, weather, calendars and to-dos are discovered from Home Assistant.
+  Rename a scene in Hue and Deckify follows.
+- **Empty by default.** A new dashboard is blank on purpose. Turn on
+  *Behaviour → Fill the dashboard automatically* if you want it to fill
+  itself, or add rooms, system cards and devices yourself.
+- **Shared or per-screen layouts.** By default the layout is stored on the
+  server and shared by every screen. Enable *Per-screen layout* to give the
+  tablet, phone and desktop their own order, hidden cards and colours.
+- **Per-card settings.** Size (1×1, 2×1, 1×2, 2×2), info text, tap / hold /
+  double-tap actions (toggle, detail panel, HA more-info, run scene, navigate,
+  call a service), custom name, icon, colour and confirmation before acting.
+- **Five layouts:** Start screen, Grid, Sidebar, List and Focus.
+- **Pages:** Home, Rooms, Media, House, Energy, Security and Needs attention.
+- **Tablet and kiosk friendly.** Hide the Home Assistant sidebar, use a
+  screensaver with a large clock, and keep the dashboard on a wall tablet.
+- **Drag-and-drop editing** that works with a finger, a detail panel per
+  domain, a weather forecast with Open-Meteo fallback, calendar, to-dos,
+  global search, a media browser with speaker grouping, and Apple TV remote
+  support.
 
-## Hurtigvalg
+## Screenshots
 
-Raden øverst på Hjem og i hvert rom er din. «Skru alt av», temperaturen i
-rommet, en scene du bruker hele tiden, en bryter du vil nå med ett trykk —
-dra for å flytte, **−** for å fjerne, og **+ Hurtigvalg** for å legge til hva
-som helst. Hver skjerm har sin egen rad.
-
-![Hurtigvalg i et rom](docs/rom.png)
-
-Enhetsvelgeren søker på navn, rom, type og entitets-id samtidig, og flere ord
-må alle treffe — «stue lys» finner taklyset i stua.
-
-![Enhetsvelgeren](docs/enhetsvelger.png)
-
-## Skjermsparer
-
-Stor klokke midt på skjermen med dagens dato under, og valgfritt vær, hvor
-mange lys som står på, hva som spilles og neste hendelse i kalenderen.
-Røyk, lekkasje og åpne dører vises alltid — en skjermsparer som skjuler at
-røykvarsleren går er verre enn ingen skjermsparer.
-
-![Skjermsparer](docs/skjermsparer.png)
-
-Starter etter 5 minutter som standard i paneldashbordet; kan settes til 30 s, 1, 2, 5, 10
-eller 30 minutter, eller av, under *Innstillinger → Skjermsparer*. Den følger
-bakgrunnen og fargene du har valgt, og klokka driver langsomt rundt så den
-ikke brenner seg inn i et veggnettbrett som står på hele døgnet. Ett trykk,
-tastetrykk eller sveip vekker skjermen.
-
-## Installasjon
-
-Krever Home Assistant **2024.7** eller nyere.
-
-### HACS (anbefalt)
-
-1. HACS → ⋮ → **Egendefinerte arkiver** → legg til dette arkivet som
-   kategori **Integration**.
-2. Søk opp **Deckify**, installer, og **start Home Assistant på nytt**.
-3. **Innstillinger → Enheter og tjenester → Legg til integrasjon → Deckify**.
-
-### Manuelt
-
-Kopier `custom_components/deckify/` til `/config/custom_components/` og start
-Home Assistant på nytt.
-
-Du trenger **ikke** registrere noen Lovelace-ressurs. Integrasjonen serverer
-frontend-filene selv på `/deckify_files/` og registrerer kortet for alle
-dashbord.
-
-## Oppsett
-
-Når du legger til integrasjonen velger du navn, URL-sti, ikon og hvilke rom
-dashbordet skal dekke (tomt = alle, og nye rom oppdages fortløpende).
-
-Trykk ⚙ på integrasjonskortet for resten:
-
-| Side | Hva du styrer |
+| Overview | Room |
 |---|---|
-| **Generelt** | navn, ikon, vis i sidemenyen, kun for administratorer |
-| **Oppførsel** | fyll dashbordet automatisk, eget oppsett per skjerm |
-| **Rom** | hvilke områder som er med |
-| **Enheter** | skjul entiteter, brytere som skal telle som lys, hva som krever bekreftelse |
-| **Sensorer** | overstyr vær, strøm, pris, utetemperatur, gjøremål … (tomt = finn selv) |
-| **Sider** | hvilke sider menylinja viser |
-| **Scener** | festede scener, hvor mange som vises, korte navn |
-| **Avanserte filtre** | ignorerte integrasjoner, regex-filtre, batterigrense |
-| **Nullstill layout** | tøm rekkefølge, skjulte kort, størrelser og kortinnstillinger |
+| ![Overview](docs/tablet-overview.png) | ![Room](docs/tablet-room.png) |
 
-Det samme kan endres inne i dashbordet under **Innstillinger → Dashbord** —
-begge skriver til samme sted.
+| Security | Settings |
+|---|---|
+| ![Security](docs/tablet-security.png) | ![Settings](docs/tablet-settings.png) |
 
-### Er teksten vanskelig å lese?
+The screenshots use Norwegian UI text because the frontend is currently
+Norwegian. English UI localization is planned separately from this
+documentation.
 
-Bakgrunnene er myke gradienter, og på enkelte av dem flyter kortflatene litt
-inn i bakgrunnen. **Innstillinger → Utseende → Lesbarhet → Høy kontrast**
-gjør flatene tettere, kantene tydeligere og sekundærteksten sterkere.
+## Documentation
 
-## Som vanlig Lovelace-kort
+| Page | Contents |
+|---|---|
+| [Getting started](docs/getting-started.md) | Install, add a dashboard and build the first screen. |
+| [Configuration](docs/configuration.md) | Integration options, dashboard settings and per-card actions. |
+| [Tablet and kiosk](docs/tablet-kiosk.md) | Landscape setup, kiosk browsers, screensaver and soak testing. |
+| [Lovelace card](docs/lovelace-card.md) | Use Deckify as a card in an existing dashboard. |
+| [Privacy](docs/privacy.md) | Storage, permissions and the Open-Meteo fallback. |
+| [Troubleshooting](docs/troubleshooting.md) | Blank panel, cached modules, missing entities and reset. |
+| [Development](docs/development.md) | Architecture, build, tests and release checklist. |
 
-Kortet kan også brukes i et hvilket som helst dashbord:
+The [documentation index](docs/README.md) has the same list.
+
+## Installation
+
+Requires **Home Assistant 2024.7** or newer.
+
+### HACS (recommended)
+
+1. HACS → ⋮ → **Custom repositories** → add this repository as an
+   **Integration**.
+2. Search for **Deckify**, install it, and **restart Home Assistant**.
+3. Go to **Settings → Devices & services → Add integration → Deckify**.
+
+### Manual
+
+Copy `custom_components/deckify/` to `/config/custom_components/` and restart
+Home Assistant.
+
+You do **not** need to register a Lovelace resource. The integration serves
+its frontend files from `/deckify_files/` and registers the card for all
+dashboards.
+
+## First run
+
+When you add the integration you choose a name, URL path, sidebar icon and
+which areas the dashboard should cover. Leave areas empty to include all
+areas, including new ones added later.
+
+A new dashboard is empty by default and shows a **Get started** panel:
+
+- **Fill automatically** imports every discovered room, card and entity.
+- **Build it yourself** opens edit mode with an empty canvas.
+
+You can change the choice later under **Settings → Behaviour**.
+
+## How it works
+
+- **One dashboard = one config entry.** Each entry gets its own sidebar item.
+- **Areas are the backbone.** Every area becomes a room card and a room page.
+- **The server stores the layout.** Order, hidden cards, card settings, filters
+  and sensor bindings live in Home Assistant, so every screen sees the same
+  dashboard by default.
+- **Device choices stay local.** Layout, kiosk options and the screensaver are
+  stored in the browser and can differ between screens.
+- **Auto-fill is optional.** With it off, new entities never appear
+  uninvited; you add them from the device picker.
+
+## Configuration
+
+The integration options and the in-dashboard settings write to the same
+server-side configuration. The integration options are best for global setup;
+the dashboard settings are best for everyday changes.
+
+| Page | What it controls |
+|---|---|
+| **General** | Name, icon, sidebar visibility, admin-only access |
+| **Behaviour** | Auto-fill and per-screen layouts |
+| **Areas** | Which Home Assistant areas are included |
+| **Devices** | Hidden entities, switches treated as lights, confirmation rules |
+| **Sensors** | Override weather, power, price, outdoor temperature, to-dos, … |
+| **Pages** | Which pages appear in the dock |
+| **Scenes** | Pinned scenes, maximum count, short names |
+| **Advanced filters** | Ignored integrations, regex filters, battery warning |
+| **Reset layout** | Reset order, hidden cards, sizes, groups and card settings |
+
+See [Configuration](docs/configuration.md) for the full reference.
+
+## Tablet and kiosk
+
+Use a landscape tablet, open the Deckify panel and hide the Home Assistant
+sidebar under **Settings → Navigation → Hide Home Assistant sidebar**. The
+sidebar is restored when you leave Deckify.
+
+The screensaver starts after 5 minutes by default, only in the panel (not in
+a normal Lovelace card), and shows a large clock with optional weather, home
+status, now-playing media and the next calendar event. Smoke, gas, carbon
+monoxide, leaks and open doors are always shown.
+
+See [Tablet and kiosk setup](docs/tablet-kiosk.md) for Fully Kiosk Browser,
+start URLs, screensaver timing and a 24-hour soak-test checklist.
+
+## Lovelace card
+
+The same dashboard can be used as a card in any Lovelace dashboard:
 
 ```yaml
 type: custom:deckify-card
 dashboard: deckify
 ```
 
-`dashboard` er URL-stien til Deckify-dashbordet du vil bruke, uten skråstrek.
-Da leses rom, sensorer, kort og rekkefølge fra det dashbordet. Uten
-`dashboard` kjører kortet på standardverdier og lagrer bare lokalt.
+`dashboard` is the URL path of the Deckify dashboard, without a leading
+slash. Without it, the card runs on defaults and stores its settings locally.
 
-## Utvikling
+See [Lovelace card](docs/lovelace-card.md) for details.
 
-Ingen byggekjede — `src/` er rene ES-moduler, og `tools/build.py` kopierer
-dem til `custom_components/deckify/www/`.
+## Privacy
+
+Deckify stores its configuration inside Home Assistant. It has no telemetry
+and no cloud account. When the configured weather entity is missing or
+unavailable, Deckify can use Open-Meteo as a fallback, which sends the home
+coordinates from Home Assistant to `api.open-meteo.com`.
+
+See [Privacy](docs/privacy.md).
+
+## Troubleshooting
+
+Start with [Troubleshooting](docs/troubleshooting.md). The most common causes
+of a blank panel are an outdated cached frontend module, a mixed `?v=` after
+an update, or a missing integration entry.
+
+## Development
+
+There is no build chain: `src/` contains plain ES modules and
+`tools/build.py` copies them to `custom_components/deckify/www/`.
 
 ```bash
-python3 tools/bump.py 2.4.0     # versjon i manifest, const.py, DK_VER og alle ?v=
-python3 tools/check_imports.py  # manglende importer, ukjente this._metoder, await i ikke-async
-python3 -m unittest discover -s tests -p "test_*.py"  # lagring, reset og merge
-bash tools/mirror.sh            # speil src/ til tools/.chk/*.mjs
+python3 tools/bump.py 2.4.3
+python3 tools/check_imports.py
+python3 -m unittest discover -s tests -p "test_*.py"
+bash tools/mirror.sh
 cp tests/fixtures/snapshot.json tools/.chk/snapshot.json
-node --test tests/*.test.mjs    # sikkerhet, reset, filtre, ruting og onboarding
-node tools/.chk/render.mjs      # rendrer alle visninger
-python3 tools/build.py          # src/ -> custom_components/deckify/www/
-./tools/deploy.sh --restart     # last opp til HA og start på nytt
+node --test tests/*.test.mjs
+node tools/.chk/render.mjs
+python3 tools/build.py
 ```
 
-`?v=` er del av modul-URL-en og **må** bumpes i alle filer samtidig — to
-ulike `?v=` er to forskjellige moduler for nettleseren, og en modul som
-laster en utdatert `core.js` feiler med «does not provide an export named X».
-`bump.py` og `build.py` lister mappa selv og nekter å bygge med blandede
-versjoner.
+The `?v=` query string is part of every module URL and must be bumped in all
+files at once. Two different `?v=` values are two different modules to the
+browser; a file that still loads an old `core.js` fails with
+“does not provide an export named …”.
 
-Deploy-verten er ikke en del av arkivet. Legg dine egne verdier i
-`tools/deploy.env`:
+See [Development](docs/development.md) for architecture, tests, the render
+harness and the release checklist.
 
-```bash
-DECKIFY_HOST=hassio@homeassistant.local
-DECKIFY_KEY=$HOME/.ssh/id_ed25519
-```
+## Credits
 
-CI bruker det syntetiske øyeblikksbildet i `tests/fixtures/snapshot.json`.
-Vil du teste mot ditt eget hus, kan du lage et personlig dump med
-`tools/dump_snapshot.py`. Den filen er gitignorert med vilje — den inneholder
-alle entitetsnavnene og posisjonen til hjemmet ditt.
+Inspired by [homedeck.pro](https://homedeck.pro). No code from it is used;
+Deckify is written from scratch and is not affiliated with it.
 
-Mer i [CONTRIBUTING.md](CONTRIBUTING.md) og [CHANGELOG.md](CHANGELOG.md).
+The Figtree font is licensed under the SIL Open Font License.
 
-## Takk til
+## License
 
-Inspirert av [homedeck.pro](https://homedeck.pro). Ingen kode derfra er
-brukt; Deckify er skrevet fra bunnen og er ikke tilknyttet dem.
-Skrifttypen er [Figtree](https://github.com/erikdkennedy/figtree) (OFL).
-
-## Lisens
-
-MIT. Se [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
