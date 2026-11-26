@@ -21,7 +21,7 @@ ES-moduler, og `tools/build.py` kopierer dem til
 `custom_components/deckify/www/`.
 
 ```bash
-git clone https://github.com/matskk/deckify
+git clone https://github.com/matskkolstad/deckify
 cd deckify
 
 # dine egne verdier, aldri committet
