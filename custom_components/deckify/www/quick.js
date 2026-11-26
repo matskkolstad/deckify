@@ -16,8 +16,8 @@
  */
 import {
   h, ICON, isDead, domainOf, nameOf, shortName, entityIcon, fmtNum,
-} from "./core.js?v=2.4.2";
-import { ic, editDeco, isCardOn, stateText } from "./controls.js?v=2.4.2";
+} from "./core.js?v=2.4.3";
+import { ic, editDeco, isCardOn, stateText } from "./controls.js?v=2.4.3";
 
 export const HOME_CHIPS = "chips:home";
 

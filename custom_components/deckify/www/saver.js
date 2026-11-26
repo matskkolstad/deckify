@@ -16,10 +16,10 @@
  */
 import {
   h, ICON, fmtNum, domainOf, nameOf, isDead,
-} from "./core.js?v=2.4.2";
-import { ic } from "./controls.js?v=2.4.2";
-import { weatherIcon, weatherText } from "./weather.js?v=2.4.2";
-import { dateString, timeString } from "./views.js?v=2.4.2";
+} from "./core.js?v=2.4.3";
+import { ic } from "./controls.js?v=2.4.3";
+import { weatherIcon, weatherText } from "./weather.js?v=2.4.3";
+import { dateString, timeString } from "./views.js?v=2.4.3";
 
 /** Valgene i Innstillinger → Skjerm → Skjermsparer. 0 = av. */
 export const SAVER_DELAYS = [

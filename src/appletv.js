@@ -8,9 +8,9 @@
  */
 import {
   h, ICON, isDead, nameOf, fmtNum, mmss,
-} from "./core.js?v=2.4.2";
-import { ic } from "./controls.js?v=2.4.2";
-import { sheet } from "./overlays.js?v=2.4.2";
+} from "./core.js?v=2.4.3";
+import { ic } from "./controls.js?v=2.4.3";
+import { sheet } from "./overlays.js?v=2.4.3";
 
 /** Alle Apple TV-er, parret med sin remote-entitet. */
 export function appleTVs(ctx) {

@@ -9,32 +9,32 @@ import {
   DK_VER, h as hEsc, h, ICON, clamp, domainOf, isOn, isDead, nameOf, buildModel, Store,
   bgCss, bgBase, isLightBg, CARD_COLORS, ACCENT_COLORS, callSvc, toggleEntity, fireEvent, deepQuery,
   LIGHT_SWATCHES,
-} from "./core.js?v=2.4.2";
-import { cardConfigSheet, cardEntity } from "./cards.js?v=2.4.2";
-import { CSS } from "./styles.js?v=2.4.2";
+} from "./core.js?v=2.4.3";
+import { cardConfigSheet, cardEntity } from "./cards.js?v=2.4.3";
+import { CSS } from "./styles.js?v=2.4.3";
 import {
   viewHomeGrid, viewHomeList, viewHomeSidebar, viewHomeFocus, viewRooms,
   viewMedia, viewSecurity, viewCustom, dock, visibleScenes, visibleHomeTiles,
   visibleRoomTiles, header,
-} from "./views.js?v=2.4.2";
-import { saverView } from "./saver.js?v=2.4.2";
+} from "./views.js?v=2.4.3";
+import { saverView } from "./saver.js?v=2.4.3";
 import {
   weatherSheet, calendarSheet, todoSheet, playerSheet, pickerSheet, confirmSheet,
-} from "./overlays.js?v=2.4.2";
-import { settingsSheet } from "./settings.js?v=2.4.2";
-import { morph } from "./morph.js?v=2.4.2";
+} from "./overlays.js?v=2.4.3";
+import { settingsSheet } from "./settings.js?v=2.4.3";
+import { morph } from "./morph.js?v=2.4.3";
 import {
   viewMediaPage, groupSheet, browseSheet, groupable, allPlayers, currentGroups,
-} from "./media.js?v=2.4.2";
-import { detailSheet } from "./detail.js?v=2.4.2";
-import { viewEnergy, viewHouse } from "./pages.js?v=2.4.2";
-import { viewStart } from "./start.js?v=2.4.2";
-import { appleTVSheet, appleTVs, isAppleTV } from "./appletv.js?v=2.4.2";
-import { weatherData } from "./weather.js?v=2.4.2";
-import { searchSheet } from "./search.js?v=2.4.2";
-import { viewAttention, attentionCount } from "./attention.js?v=2.4.2";
-import { ic } from "./controls.js?v=2.4.2";
-import { quickIds, chipRoomOf, quickLabel } from "./quick.js?v=2.4.2";
+} from "./media.js?v=2.4.3";
+import { detailSheet } from "./detail.js?v=2.4.3";
+import { viewEnergy, viewHouse } from "./pages.js?v=2.4.3";
+import { viewStart } from "./start.js?v=2.4.3";
+import { appleTVSheet, appleTVs, isAppleTV } from "./appletv.js?v=2.4.3";
+import { weatherData } from "./weather.js?v=2.4.3";
+import { searchSheet } from "./search.js?v=2.4.3";
+import { viewAttention, attentionCount } from "./attention.js?v=2.4.3";
+import { ic } from "./controls.js?v=2.4.3";
+import { quickIds, chipRoomOf, quickLabel } from "./quick.js?v=2.4.3";
 
 console.info(`%c DECKIFY %c ${DK_VER} `,
   "background:#f5b731;color:#2a2008;font-weight:700;border-radius:3px 0 0 3px",
@@ -206,7 +206,10 @@ class DeckifyCard extends HTMLElement {
       innstillinger, eller fra en annen nettleser. Uten dette viser
       veggnettbrettet gammelt oppsett til siden lastes på nytt. */
   _subscribeConfig() {
-    if (!this._hass?.connection || this._cfgSub) return;
+    /* Vanlige brukere har ikke lov til å abonnere på integrasjonens
+       hendelser. Å prøve ga en autorisasjonsfeil i HA-loggen; de får
+       oppdatert visningen ved neste sidelast i stedet. */
+    if (!this._hass?.connection || this._cfgSub || !this._store?.writable) return;
     this._cfgSub = true;
     const gen = ++this._cfgGen;
     const self = this;

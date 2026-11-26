@@ -42,7 +42,7 @@ class DeckifyCardProxy extends HTMLElement {
 
   _ensure() {
     if (this._inner || this._loading) return;
-    this._loading = import("./deckify.js?v=2.4.2").then(() => {
+    this._loading = import("./deckify.js?v=2.4.3").then(() => {
       if (!customElements.get("deckify-card-inner"))
         throw new Error("deckify-card-inner mangler");
       const el = document.createElement("deckify-card-inner");

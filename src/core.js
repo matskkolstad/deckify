@@ -3,7 +3,7 @@
  * Bygget for Home Assistant. Ingen HACS-avhengighet.
  */
 
-export const DK_VER = "2.4.2";
+export const DK_VER = "2.4.3";
 
 /* Basis-URL for modulene. Integrasjonen serverer dem fra /deckify_files/,
    men kortet skal også fungere hvis noen legger filene et annet sted — så

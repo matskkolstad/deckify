@@ -4,6 +4,14 @@ Alle merkbare endringer i Deckify. Formatet følger
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), og versjonene
 [semantisk versjonering](https://semver.org/lang/no/).
 
+## [2.4.3] - 2026-11-26
+
+### Rettet
+
+- Vanlige brukere prøvde å abonnere på `deckify_updated` og fikk
+  `Unauthorized` i Home Assistant-loggen. Abonnementet opprettes nå bare for
+  administratorer; andre får oppdatert visningen ved neste sidelast.
+
 ## [2.4.2] - 2026-11-26
 
 ### Rettet
