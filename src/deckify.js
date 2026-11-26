@@ -9,32 +9,32 @@ import {
   DK_VER, h as hEsc, h, ICON, clamp, domainOf, isOn, isDead, nameOf, buildModel, Store,
   bgCss, bgBase, isLightBg, CARD_COLORS, ACCENT_COLORS, callSvc, toggleEntity, fireEvent, deepQuery,
   LIGHT_SWATCHES,
-} from "./core.js?v=2.4.1";
-import { cardConfigSheet, cardEntity } from "./cards.js?v=2.4.1";
-import { CSS } from "./styles.js?v=2.4.1";
+} from "./core.js?v=2.4.2";
+import { cardConfigSheet, cardEntity } from "./cards.js?v=2.4.2";
+import { CSS } from "./styles.js?v=2.4.2";
 import {
   viewHomeGrid, viewHomeList, viewHomeSidebar, viewHomeFocus, viewRooms,
   viewMedia, viewSecurity, viewCustom, dock, visibleScenes, visibleHomeTiles,
   visibleRoomTiles, header,
-} from "./views.js?v=2.4.1";
-import { saverView } from "./saver.js?v=2.4.1";
+} from "./views.js?v=2.4.2";
+import { saverView } from "./saver.js?v=2.4.2";
 import {
   weatherSheet, calendarSheet, todoSheet, playerSheet, pickerSheet, confirmSheet,
-} from "./overlays.js?v=2.4.1";
-import { settingsSheet } from "./settings.js?v=2.4.1";
-import { morph } from "./morph.js?v=2.4.1";
+} from "./overlays.js?v=2.4.2";
+import { settingsSheet } from "./settings.js?v=2.4.2";
+import { morph } from "./morph.js?v=2.4.2";
 import {
   viewMediaPage, groupSheet, browseSheet, groupable, allPlayers, currentGroups,
-} from "./media.js?v=2.4.1";
-import { detailSheet } from "./detail.js?v=2.4.1";
-import { viewEnergy, viewHouse } from "./pages.js?v=2.4.1";
-import { viewStart } from "./start.js?v=2.4.1";
-import { appleTVSheet, appleTVs, isAppleTV } from "./appletv.js?v=2.4.1";
-import { weatherData } from "./weather.js?v=2.4.1";
-import { searchSheet } from "./search.js?v=2.4.1";
-import { viewAttention, attentionCount } from "./attention.js?v=2.4.1";
-import { ic } from "./controls.js?v=2.4.1";
-import { quickIds, chipRoomOf, quickLabel } from "./quick.js?v=2.4.1";
+} from "./media.js?v=2.4.2";
+import { detailSheet } from "./detail.js?v=2.4.2";
+import { viewEnergy, viewHouse } from "./pages.js?v=2.4.2";
+import { viewStart } from "./start.js?v=2.4.2";
+import { appleTVSheet, appleTVs, isAppleTV } from "./appletv.js?v=2.4.2";
+import { weatherData } from "./weather.js?v=2.4.2";
+import { searchSheet } from "./search.js?v=2.4.2";
+import { viewAttention, attentionCount } from "./attention.js?v=2.4.2";
+import { ic } from "./controls.js?v=2.4.2";
+import { quickIds, chipRoomOf, quickLabel } from "./quick.js?v=2.4.2";
 
 console.info(`%c DECKIFY %c ${DK_VER} `,
   "background:#f5b731;color:#2a2008;font-weight:700;border-radius:3px 0 0 3px",
@@ -715,7 +715,10 @@ class DeckifyCard extends HTMLElement {
   /* --------------------------------------------------------------- kiosk */
 
   _isDefaultPanel() {
-    try { return this._hass.defaultPanel === this._panelPath(); } catch (e) { return false; }
+    try {
+      const selected = this._hass.userData?.defaultPanel ?? this._hass.defaultPanel;
+      return selected === this._panelPath();
+    } catch (e) { return false; }
   }
   _panelPath() {
     const p = location.pathname.split("/").filter(Boolean);
@@ -1748,12 +1751,18 @@ class DeckifyCard extends HTMLElement {
         const want = this._isDefaultPanel() ? "lovelace" : this._panelPath();
         this._hass.callWS({ type: "frontend/get_user_data", key: "core" })
           .catch(() => ({ value: {} }))
-          .then((r) => this._hass.callWS({
-            type: "frontend/set_user_data", key: "core",
-            value: { ...((r && r.value) || {}), defaultPanel: want },
-          }))
-          .then(() => { try { this._hass.defaultPanel = want; } catch (e) {} this._render(); })
-          .catch((e) => console.warn("[Deckify] startskjerm", e));
+          .then((r) => {
+            const next = { ...((r && r.value) || {}), defaultPanel: want };
+            return this._hass.callWS({
+              type: "frontend/set_user_data", key: "core", value: next,
+            }).then(() => next);
+          })
+          .then((next) => {
+            try { this._hass.userData = next; } catch (e) {}
+            try { this._hass.defaultPanel = want; } catch (e) {}
+            this._render();
+          })
+          .catch((e) => this._toast("Kunne ikke endre startside: " + (e?.message || e)));
         break;
       }
       case "newpage": {

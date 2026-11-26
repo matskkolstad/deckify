@@ -4,6 +4,14 @@ Alle merkbare endringer i Deckify. Formatet følger
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), og versjonene
 [semantisk versjonering](https://semver.org/lang/no/).
 
+## [2.4.2] - 2026-11-26
+
+### Rettet
+
+- «Deckify som startside» leser og skriver HAs `userData.defaultPanel` i
+  stedet for det utgåtte `hass.defaultPanel`. Bryteren viser nå riktig
+  «Aktiv nå»/«Ikke aktiv», og kan slås av og på igjen.
+
 ## [2.4.1] - 2026-11-26
 
 ### Rettet

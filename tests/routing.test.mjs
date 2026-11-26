@@ -77,4 +77,10 @@ test("hash-ruting leser og skriver visning", () => {
   c2.setConfig({ dashboard: "deckify" });
   assert.equal(c2._dashboard, "deckify");
   assert.equal(c2._instance, "deckify");
+
+  const c3 = new Card();
+  c3._hass = { userData: { defaultPanel: "deckify" } };
+  assert.equal(c3._isDefaultPanel(), true);
+  c3._hass = { userData: { defaultPanel: "lovelace" } };
+  assert.equal(c3._isDefaultPanel(), false);
 });

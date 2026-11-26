@@ -4,14 +4,14 @@
 import {
   h, ICON, fmtNum, isDead, domainOf, nameOf,
   shortName, clamp,
-} from "./core.js?v=2.4.1";
+} from "./core.js?v=2.4.2";
 import {
   roomTile, deviceTile, deviceBig, mediaTile, securityTile, securityAlerts,
   climateTile, powerTile, sceneChip, listGroup, listRow,
   stateText, supportsBig, ic, isCardOn, anyTile, cardWrap,
-} from "./controls.js?v=2.4.1";
-import { weatherIcon, weatherText } from "./weather.js?v=2.4.1";
-import { quickRow, HOME_CHIPS, roomChipScope } from "./quick.js?v=2.4.1";
+} from "./controls.js?v=2.4.2";
+import { weatherIcon, weatherText } from "./weather.js?v=2.4.2";
+import { quickRow, HOME_CHIPS, roomChipScope } from "./quick.js?v=2.4.2";
 
 const NB_DAYS = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
 const NB_MON = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];

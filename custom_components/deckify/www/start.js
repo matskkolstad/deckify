@@ -6,11 +6,11 @@
 import {
   h, ICON, clamp, fmtNum, isDead, shortName, domainOf, truncate,
   WEATHER_ICON, WEATHER_TEXT, lightColor,
-} from "./core.js?v=2.4.1";
-import { ic, anyTile } from "./controls.js?v=2.4.1";
-import { appleTVs } from "./appletv.js?v=2.4.1";
-import { weatherIcon, weatherText } from "./weather.js?v=2.4.1";
-import { dateString, timeString, onboarding } from "./views.js?v=2.4.1";
+} from "./core.js?v=2.4.2";
+import { ic, anyTile } from "./controls.js?v=2.4.2";
+import { appleTVs } from "./appletv.js?v=2.4.2";
+import { weatherIcon, weatherText } from "./weather.js?v=2.4.2";
+import { dateString, timeString, onboarding } from "./views.js?v=2.4.2";
 
 const nval = (ctx, eid) => {
   const st = eid ? ctx.hass.states[eid] : null;

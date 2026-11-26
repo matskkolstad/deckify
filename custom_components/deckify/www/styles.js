@@ -1,6 +1,6 @@
 /* Deckify — styles.js  (alt visuelt uttrykk) */
 
-import { BASE } from "./core.js?v=2.4.1";
+import { BASE } from "./core.js?v=2.4.2";
 
 export const CSS = `
 @font-face{font-family:'HDFigtree';font-style:normal;font-weight:300 800;font-display:swap;

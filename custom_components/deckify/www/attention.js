@@ -5,8 +5,8 @@
 import {
   h, ICON, isDead, domainOf, nameOf, fullNameOf, deviceNameOf, shortName,
   entityIcon, fmtNum,
-} from "./core.js?v=2.4.1";
-import { ic } from "./controls.js?v=2.4.1";
+} from "./core.js?v=2.4.2";
+import { ic } from "./controls.js?v=2.4.2";
 
 const num = (hass, eid) => {
   const st = eid ? hass.states[eid] : null;
